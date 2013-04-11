@@ -78,6 +78,10 @@ type Job struct {
   state JobState
 }
 
+func (j Job) getFile() string {
+  return *baseDir + "/new/" + j.hash
+}
+
 type JobList map[string]*Job
 
 func createHash(body string) string {
@@ -145,9 +149,11 @@ func newJobList(cmdName string, listing []string) JobList {
   for _, args := range listing {
     cmd := cmdName + " " + args
     hash := createHash(cmd)
-    jobList[hash] = &Job{hash, cmd, NEW}
+
+    job := &Job{hash, cmd, NEW}
+    jobList[hash] = job
+    touchFile(job.getFile())
   }
-  // Sync job list with what's already been done
 
   return jobList
 }
@@ -212,7 +218,6 @@ func touchFile (filename string) {
 
 func (job *Job) run() error {
   outputFile := *baseDir + "/new/" + job.hash
-  touchFile(outputFile)
 
   //TODO setup some proper piping to clean up the process tree 
   cmd := exec.Command("bash","-c",*to +" &>" + outputFile)
@@ -235,6 +240,7 @@ func main() {
   todo.sync()
 
   for _, job := range todo.available() {
+    job.update(RUNNING)
     err := job.run()
     if err == nil {
       job.update(SUCCEEDED)
