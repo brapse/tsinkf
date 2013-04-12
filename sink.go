@@ -78,8 +78,35 @@ type Job struct {
   state JobState
 }
 
-func (j Job) getFile() string {
-  return *baseDir + "/new/" + j.hash
+func (j Job) getPath(jobState JobState) string {
+  if jobState == NEW {
+    return *baseDir + "/new/" + j.hash
+  } else if jobState == RUNNING {
+    return *baseDir + "/running/" + j.hash
+  } else if jobState == FAILED {
+    return *baseDir + "/failed/" + j.hash
+  }
+
+  // XXX: this may prove to be wrong
+  return *baseDir + "/succeeded/" + j.hash
+}
+
+func (j Job) getFileState() (JobState, error) {
+  // TODO: ensure each file occupies exactly 1 state
+
+  if !fileExists(j.getPath(NEW)) {
+    return UNKNOWN, fmt.Errorf("Job file does not exist")
+  }
+
+  if fileExists(j.getPath(RUNNING)) {
+    return RUNNING, nil
+  } else if fileExists(j.getPath(FAILED)) {
+    return FAILED, nil
+  } else if fileExists(j.getPath(SUCCEEDED)) {
+    return SUCCEEDED, nil
+  }
+
+  return NEW, nil
 }
 
 type JobList map[string]*Job
@@ -114,29 +141,13 @@ func fileExists(filepath string) bool {
   return true
 }
 
-func getJobFileState(jobHash string) (JobState, error) {
-  // TODO: ensure each file occupies exactly 1 state
-
-  if !fileExists(*baseDir + "/new/" + jobHash) {
-    return UNKNOWN, fmt.Errorf("Job file does not exist")
-  }
-
-  if fileExists(*baseDir + "/running/" + jobHash) {
-    return RUNNING, nil
-  } else if fileExists(*baseDir + "/failed/" + jobHash) {
-    return FAILED, nil
-  } else if fileExists(*baseDir + "/succeeded/" + jobHash) {
-    return SUCCEEDED, nil
-  }
-
-  return NEW, nil
-}
 
 func (jobList JobList) sync() {
   // update the state of each job based on what's in the filesystem
   // XXX: Think about inconsistencies that could occur here
   for _,job := range jobList {
-    state, err := getJobFileState(job.hash)
+    state, err := job.getFileState()
+    //fmt.Printf("job state: %s\n", state)
     if err != nil {
       panic(err)
     }
@@ -152,7 +163,7 @@ func newJobList(cmdName string, listing []string) JobList {
 
     job := &Job{hash, cmd, NEW}
     jobList[hash] = job
-    touchFile(job.getFile())
+    touchFile(job.getPath(NEW))
   }
 
   return jobList
@@ -167,8 +178,8 @@ func (t JobList) done() (doneJobs []*Job) {
   return
 }
 
-func (t JobList) available() (availableJobs []*Job) {
-  for _,job := range t {
+func (jobList JobList) available() (availableJobs []*Job) {
+  for _,job := range jobList {
     if job.state == NEW {
       availableJobs = append(availableJobs, job)
     }
@@ -179,28 +190,35 @@ func (t JobList) available() (availableJobs []*Job) {
 
 
 func (j *Job) update(to JobState) {
+  cwd, err := os.Getwd()
+
+  if err != nil {
+    panic(err)
+  }
+
+  fullPath := cwd + "/" + *baseDir
   if j.state == NEW && to == RUNNING {
-    err := os.Symlink(*baseDir + "/new/" + j.hash, *baseDir + "/running/" + j.hash)
+    err := os.Symlink(fullPath + "/new/" + j.hash, fullPath + "/running/" + j.hash)
     if err != nil {
       panic(err)
     }
   } else if j.state == RUNNING && to == SUCCEEDED {
-    err := os.Remove(*baseDir + "/running/" + j.hash)
+    err := os.Remove(fullPath + "/running/" + j.hash)
     if err != nil {
       panic(err)
     }
 
-    err = os.Symlink(*baseDir + "/new/" + j.hash, *baseDir + "/succeeded/" + j.hash)
+    err = os.Symlink(fullPath + "/new/" + j.hash, fullPath + "/succeeded/" + j.hash)
     if err != nil {
       panic(err)
     }
   } else if j.state == RUNNING && to == FAILED {
-    err := os.Remove(*baseDir + "/running/" + j.hash)
+    err := os.Remove(fullPath + "/running/" + j.hash)
     if err != nil {
       panic(err)
     }
 
-    err = os.Symlink(*baseDir + "/new/" + j.hash, *baseDir + "/failed/" + j.hash)
+    err = os.Symlink(fullPath + "/new/" + j.hash, fullPath + "/failed/" + j.hash)
     if err != nil {
       panic(err)
     }
@@ -218,9 +236,10 @@ func touchFile (filename string) {
 
 func (job *Job) run() error {
   outputFile := *baseDir + "/new/" + job.hash
+  execution  := job.body + " &>" + outputFile
 
   //TODO setup some proper piping to clean up the process tree 
-  cmd := exec.Command("bash","-c",*to +" &>" + outputFile)
+  cmd := exec.Command("bash","-c", execution)
   err := cmd.Run()
 
   return err

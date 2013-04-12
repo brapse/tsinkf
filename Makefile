@@ -11,4 +11,4 @@ test:
 	go test
 
 example:
-	go run sink.go -from="find . -type f" -to="wc -l"
+	go run sink.go -from="cat example_input" -to="wc -l"
