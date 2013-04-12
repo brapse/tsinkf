@@ -3,9 +3,10 @@ package main
 import (
   "flag"
   "os"
-  "jobs"
+  "os/exec"
   "strings"
-  "exec"
+  "bytes"
+  "log"
 )
 
 
@@ -47,9 +48,9 @@ func main() {
 
   // RUNNING
   fromListing := getFrom(*from)        // result of the listing
-  jobList     := NewJobList(*to, fromListing)
+  jobList     := NewJobList(*to, fromListing, *baseDir)
 
-  for _, job := range todo.available() {
+  for _, job := range jobList.available() {
     job.update(RUNNING)
     err := job.run()
     if err == nil {

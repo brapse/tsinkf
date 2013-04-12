@@ -3,9 +3,6 @@ package main
 import (
   "os"
   "os/exec"
-  "strings"
-  "fmt"
-  "hashing"
 )
 
 type JobState int
@@ -47,32 +44,32 @@ type Store struct {
 func newStore(baseDir string) *Store {
   // create directory structure that will be required for writting
   for _, directory := range []string{"new", "running", "failed", "succeeded"} {
-    todo := *baseDir + "/" + directory
+    todo := baseDir + "/" + directory
     err := os.MkdirAll(todo, 0755)
     if err != nil {
       panic(err)
     }
   }
 
-  return Store{baseDir}
+  return &Store{baseDir}
 }
 
-func (s Store) getPath(j Job, jobHash string) string {
+func (s Store) getPath(jobState JobState, jobHash string) string {
   if jobState == NEW {
     return s.baseDir + "/new/" + jobHash
   } else if jobState == RUNNING {
     return s.baseDir + "/running/" + jobHash
-  } else if s.jobState == FAILED {
+  } else if jobState == FAILED {
     return s.baseDir + "/failed/" + jobHash
   }
 
   // XXX: this may prove to be wrong
-  return s.baseDir + "/succeeded/" + j.hash
+  return s.baseDir + "/succeeded/" + jobHash
 }
 
-func (s Store) get(key string) jobState {
+func (s Store) get(key string) JobState {
   if !fileExists(s.getPath(NEW, key)) {
-    return UNKNOWN, fmt.Errorf("Job file does not exist")
+    return UNKNOWN
   }
 
   if fileExists(s.getPath(RUNNING, key)) {
@@ -87,12 +84,6 @@ func (s Store) get(key string) jobState {
 }
 
 func (s *Store) set(j Job, to JobState) {
-  cwd, err := os.Getwd()
-
-  if err != nil {
-    panic(err)
-  }
-
   if j.state == NEW && to == RUNNING {
     err := os.Symlink(s.getPath(NEW, j.hash), s.getPath(RUNNING, j.hash))
     if err != nil {
@@ -127,11 +118,11 @@ type Job struct {
   hash string
   body string
   state JobState
-  store Store
+  store *Store
 }
 
 func NewJob(cmd string, store *Store) *Job {
-  hash := hashing.CreateHash(cmd)
+  hash := CreateHash(cmd)
 
   // TODO: Setup storage
   state := store.get(hash)
@@ -152,21 +143,33 @@ func (job *Job) run() error {
 
 func (job *Job) update(to JobState) {
   // XXX: Exceptions?
-  store.set(job, to)
+  job.store.set(*job, to)
+  job.state = to
 }
 
 //jobList stuff
 
 type JobList []*Job
 
-func NewJobList(cmdName string, listing []string) JobList {
+func NewJobList(cmdName string, listing []string, baseDir string) JobList {
   jobList := JobList{}
   for _, args := range listing {
     cmd := cmdName + " " + args
 
     // SYNCING
-    job := newJob(cmd, &store)
+    store := newStore(baseDir)
+    jobList = append(jobList,NewJob(cmd, store))
   }
 
   return jobList
+}
+
+func (jobList JobList) available() (availableJobs []*Job) {
+  for _,job := range jobList {
+    if job.state == NEW {
+      availableJobs = append(availableJobs, job)
+    }
+  }
+
+  return
 }

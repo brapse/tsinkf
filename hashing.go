@@ -1,12 +1,11 @@
-package hashing
+package main
 
 import (
-  "bytes"
   "encoding/base64"
 )
 
 func CreateHash(cmd string) string {
-  msg := []byte(body)
+  msg := []byte(cmd)
   encoded := make([]byte, base64.StdEncoding.EncodedLen(len(msg)))
   base64.StdEncoding.Encode(encoded, msg)
   return string(encoded)

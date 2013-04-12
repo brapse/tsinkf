@@ -3,6 +3,11 @@ MINOR    := 0
 PATCH    := 1
 VERSION  := $(MAJOR).$(MINOR).$(PATCH)
 
+LDFLAGS := -ldflags "-X main.Version $(VERSION)"
+
+SRC=$(wildcard *.go)
+TGT=tsinkf
+
 default: example
 
 build:
@@ -10,5 +15,5 @@ build:
 test:
 	go test
 
-example:
-	go run tsinkf.go -from="cat example_input" -to="wc -l"
+example: build
+	./sink -from="cat example_input" -to="wc -l"
