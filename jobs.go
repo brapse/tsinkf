@@ -41,8 +41,15 @@ type Store struct {
   baseDir string
 }
 
-func newStore(baseDir string) *Store {
-  // create directory structure that will be required for writting
+func newStore(relPath string) *Store {
+  // TODO: check if we need to add the full path
+  cwd, err := os.Getwd()
+  if err != nil {
+    panic(err)
+  }
+
+  baseDir := cwd + "/" + relPath
+
   for _, directory := range []string{"new", "running", "failed", "succeeded"} {
     todo := baseDir + "/" + directory
     err := os.MkdirAll(todo, 0755)
@@ -84,7 +91,9 @@ func (s Store) get(key string) JobState {
 }
 
 func (s *Store) set(j Job, to JobState) {
-  if j.state == NEW && to == RUNNING {
+  if j.state == UNKNOWN && to == NEW{
+    touchFile(s.getPath(NEW, j.hash))
+  } else if j.state == NEW && to == RUNNING {
     err := os.Symlink(s.getPath(NEW, j.hash), s.getPath(RUNNING, j.hash))
     if err != nil {
       panic(err)
@@ -110,13 +119,15 @@ func (s *Store) set(j Job, to JobState) {
       panic(err)
     }
   }
+
+  j.state = to
 }
 
 //jobs stuff
 
 type Job struct {
   hash string
-  body string
+  cmd string
   state JobState
   store *Store
 }
@@ -124,15 +135,19 @@ type Job struct {
 func NewJob(cmd string, store *Store) *Job {
   hash := CreateHash(cmd)
 
-  // TODO: Setup storage
   state := store.get(hash)
-  return &Job{hash, cmd, state, store}
+  job := &Job{hash, cmd, state, store}
+
+  if state == UNKNOWN {
+    job.update(NEW)
+  }
+  return job
 }
 
 
 func (job *Job) run() error {
   outputFile := *baseDir + "/new/" + job.hash
-  execution  := job.body + " &>" + outputFile
+  execution  := job.cmd + " &>" + outputFile
 
   //TODO setup some proper piping to clean up the process tree 
   cmd := exec.Command("bash","-c", execution)
@@ -153,11 +168,10 @@ type JobList []*Job
 
 func NewJobList(cmdName string, listing []string, baseDir string) JobList {
   jobList := JobList{}
+  store := newStore(baseDir)
   for _, args := range listing {
     cmd := cmdName + " " + args
 
-    // SYNCING
-    store := newStore(baseDir)
     jobList = append(jobList,NewJob(cmd, store))
   }
 
