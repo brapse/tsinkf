@@ -3,6 +3,9 @@ package main
 import (
   "os"
   "os/exec"
+  "strings"
+  "log"
+  "flag"
 )
 
 type JobState int
@@ -14,6 +17,34 @@ const (
   FAILED    JobState = 2
   SUCCEEDED JobState = 3
 )
+
+var STATELABELS = map[JobState] string {
+  UNKNOWN: "UNKNOWN",
+  NEW: "NEW",
+  RUNNING: "RUNNING",
+  FAILED: "FAILED",
+  SUCCEEDED: "SUCCEEDED",
+}
+
+// Journal
+
+func init() {
+  flag.Parse()
+}
+
+var debug = flag.Bool("v", false, "Debug info")
+
+func Journal(job Job, toState JobState) {
+    fromLabel := STATELABELS[job.state]
+    toLabel   := STATELABELS[toState]
+    msg := strings.Join([]string{
+      fromLabel + "->" + toLabel,
+      job.cmd }, "\t")
+    if *debug {
+        log.Printf(msg)
+    }
+    // TODO: Write to file
+}
 
 //filesystem stuff
 func touchFile (filename string) {
@@ -119,8 +150,6 @@ func (s *Store) set(j Job, to JobState) {
       panic(err)
     }
   }
-
-  j.state = to
 }
 
 //jobs stuff
@@ -136,6 +165,7 @@ func NewJob(cmd string, store *Store) *Job {
   hash := CreateHash(cmd)
 
   state := store.get(hash)
+
   job := &Job{hash, cmd, state, store}
 
   if state == UNKNOWN {
@@ -158,6 +188,7 @@ func (job *Job) run() error {
 
 func (job *Job) update(to JobState) {
   // XXX: Exceptions?
+  Journal(*job, to)
   job.store.set(*job, to)
   job.state = to
 }
