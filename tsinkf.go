@@ -22,6 +22,7 @@ var (
   to       = flag.String("to", "", "To command to pass lines")
   baseDir  = flag.String("dir", ".tsinkf", "directory where state files are created")
   showHelp = flag.Bool("h", false, "Show help")
+  debug    = flag.Bool("v", false, "Debug info")
 )
 
 func init() {
@@ -46,17 +47,22 @@ func main() {
     os.Exit(0)
   }
 
+  // Create a Filestore
+  store := NewStore(*baseDir)
+  journal := NewJournal(*debug, *baseDir + "/journal.log")
+  // Create a Journal
+
   // RUNNING
   fromListing := getFrom(*from)        // result of the listing
-  jobList     := NewJobList(*to, fromListing, *baseDir)
+  jobList     := NewJobList(*to, fromListing, *store, *journal)
 
   for _, job := range jobList.available() {
-    job.update(RUNNING)
+    jobList.update(job, RUNNING)
     err := job.run()
     if err == nil {
-      job.update(SUCCEEDED)
+      jobList.update(job, SUCCEEDED)
     } else {
-      job.update(FAILED)
+      jobList.update(job, FAILED)
     }
   }
 }
