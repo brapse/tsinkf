@@ -4,6 +4,7 @@ import (
   "strings"
   "fmt"
   "os"
+  "time"
 )
 
 type Journal struct {
@@ -24,8 +25,10 @@ func (j Journal) log(job Job, toState JobState) {
     fromLabel := STATELABELS[job.state]
     toLabel   := STATELABELS[toState]
     msg := strings.Join([]string{
+      time.Now().Format("2006-01-02 15:04:05"),
       fromLabel + "->" + toLabel,
-      job.cmd }, "\t") + "\n"
+      job.cmd,
+      job.hash }, "\t") + "\n"
 
     if j.writeStdout {
         fmt.Printf(msg)
