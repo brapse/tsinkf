@@ -16,4 +16,4 @@ test:
 	go test
 
 example: build
-	./sink -from="cat example_input" -to="wc -l" -v
+	./tsinkf -from='echo /bin/bash' -to="wc -l" -v
