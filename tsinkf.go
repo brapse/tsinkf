@@ -65,4 +65,7 @@ func main() {
       jobList.update(job, FAILED)
     }
   }
+
+  store.close()
+  journal.close()
 }

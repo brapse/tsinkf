@@ -23,6 +23,12 @@ func NewStore(relPath string) *Store {
   }
 
   // check and establish a lock
+  lockFile := baseDir + "/lock"
+  if FileExists(lockFile) {
+    panic(baseDir + "is locked!\n can't run locked directory")
+  } else {
+    TouchFile(lockFile)
+  }
 
   for _, directory := range []string{"new", "running", "failed", "succeeded"} {
     todo := baseDir + "/" + directory
@@ -72,4 +78,9 @@ func (s *Store) set(jobHash string, jobState JobState) {
       panic(err)
     }
   }
+
+}
+
+func (s *Store) close() {
+  RemoveFile(s.baseDir + "/lock")
 }
