@@ -22,8 +22,6 @@ var STATELABELS = map[JobState] string {
   SUCCEEDED: "SUCCEEDED",
 }
 
-//jobs stuff
-
 type Job struct {
   hash string
   cmd string
@@ -74,10 +72,8 @@ func NewJobList(cmdName string, listing []string, stor Store, jrnl Journal) JobL
         state = FAILED
       }
 
-      store.set(job.hash, state)
-      job.state = state
-
       jobList = append(jobList, job)
+      jobList.update(job, state)
     }
   }
 
@@ -85,9 +81,7 @@ func NewJobList(cmdName string, listing []string, stor Store, jrnl Journal) JobL
 }
 
 func (jobList JobList) update(job *Job, newState JobState) {
-  // Update the journal
   journal.log(*job, newState)
-  // Update the store
   store.set(job.hash, newState)
   job.state = newState
 }

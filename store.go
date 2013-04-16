@@ -66,8 +66,10 @@ func (s *Store) set(jobHash string, jobState JobState) {
     RemoveFile(s.getPath(state, jobHash))
   }
 
-  err := os.Symlink(s.getPath(NEW, jobHash), s.getPath(RUNNING, jobHash))
-  if err != nil {
-    panic(err)
+  if jobState != NEW {
+    err := os.Symlink(s.getPath(NEW, jobHash), s.getPath(jobState, jobHash))
+    if err != nil {
+      panic(err)
+    }
   }
 }
