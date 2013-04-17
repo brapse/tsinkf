@@ -45,6 +45,7 @@ func (job *Job) ToString() string {
 }
 
 func (job *Job) Run() error {
+  // XXX: This sucks
   outputFile := *baseDir + "/new/" + job.hash
   execution  := job.cmd + " &>" + outputFile
 

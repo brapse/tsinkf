@@ -10,18 +10,7 @@ import (
   "fmt"
 )
 
-
-// TODO
-// + subcommands: run, show, reset
-// + Refactor execution stuff
-
-var (
-  from     = flag.String("from", "", "From command line tool")
-  to       = flag.String("to", "", "To command to pass lines")
-  baseDir  = flag.String("dir", ".tsinkf", "directory where state files are created")
-  showHelp = flag.Bool("h", false, "Show help")
-  debug    = flag.Bool("v", false, "Debug info")
-)
+var baseDir = flag.String("dir", ".tsinkf", "directory where state files are created")
 
 func init() {
   flag.Parse()
@@ -48,14 +37,12 @@ func getFrom(fromCmd string) (res []string) {
 type Run struct {
   from *string
   to *string
-  baseDir *string
   debug *bool
 }
 
 func (cmd *Run) DefineFlags(fs *flag.FlagSet) {
   cmd.from     = fs.String("from", "", "From command line tool")
   cmd.to       = fs.String("to", "", "To command to pass lines")
-  cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
   cmd.debug    = fs.Bool("v", false, "Debug info")
 }
 
@@ -64,8 +51,8 @@ func (cmd *Run) Name() string{
 }
 
 func (fs *Run) Run() {
-  store   := NewStore(*fs.baseDir)
-  journal := NewJournal(*fs.debug, *fs.baseDir + "/journal.log")
+  store   := NewStore(*baseDir)
+  journal := NewJournal(*fs.debug, *baseDir + "/journal.log")
   defer store.Close()
   defer journal.Close()
 
@@ -110,8 +97,8 @@ func (cmd *Show) DefineFlags(fs *flag.FlagSet) {
 }
 
 func (fs *Show) Run() {
-  store   := NewStore(*fs.baseDir)
-  journal := NewJournal(*fs.verbose, *fs.baseDir + "/journal.log")
+  store   := NewStore(*baseDir)
+  journal := NewJournal(*fs.verbose, *baseDir + "/journal.log")
 
   defer store.Close()
   defer journal.Close()
@@ -132,14 +119,13 @@ type Reset struct {
 func (cmd *Reset) Name() string { return "reset" }
 
 func (cmd *Reset) DefineFlags(fs *flag.FlagSet) {
-  cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
 }
 
 func (fs *Reset) Run() {
-  store   := NewStore(*fs.baseDir)
+  store   := NewStore(*baseDir)
 
-  defer store.Close()
   store.Reset()
+  store.Close()
 }
 
 func main() {
