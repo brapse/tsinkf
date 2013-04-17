@@ -123,6 +123,25 @@ func (fs *Show) Run() {
   }
 }
 
+// Reset
+
+type Reset struct {
+  baseDir *string
+}
+
+func (cmd *Reset) Name() string { return "reset" }
+
+func (cmd *Reset) DefineFlags(fs *flag.FlagSet) {
+  cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
+}
+
+func (fs *Reset) Run() {
+  store   := NewStore(*fs.baseDir)
+
+  defer store.Close()
+  store.Reset()
+}
+
 func main() {
   // do the no args version...
   switch os.Args[1] {
@@ -130,6 +149,8 @@ func main() {
       Parse(new(Run))
     case "show":
       Parse(new(Show))
+    case "reset":
+      Parse(new(Reset))
     default:
       fmt.Printf("invalid command %s", os.Args[1])
   }

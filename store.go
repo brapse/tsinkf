@@ -89,6 +89,14 @@ func (s Store) Set(jobHash string, jobState JobState) {
 
 }
 
+func (s Store) Reset() {
+  for jobHash, _ := range s.GetAll() {
+    for _, state := range []JobState{RUNNING,SUCCEEDED,FAILED} {
+      RemoveFile(s.getPath(state, jobHash))
+    }
+  }
+}
+
 func (s Store) Close() {
   RemoveFile(s.baseDir + "/lock")
 }
