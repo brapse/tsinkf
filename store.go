@@ -48,7 +48,7 @@ func (s Store) getPath(jobState JobState, jobHash string) string {
   return s.baseDir + "/" + STATELABELS[jobState] + "/" + jobHash
 }
 
-func (s Store) get(key string) JobState {
+func (s Store) Get(key string) JobState {
   if !FileExists(s.getPath(NEW, key)) {
     return UNKNOWN
   }
@@ -64,16 +64,16 @@ func (s Store) get(key string) JobState {
   return NEW
 }
 
-func (s Store) getAll() map[string]JobState {
+func (s Store) GetAll() map[string]JobState {
 	result := make(map[string]JobState)
 	for _, filename := range ListFiles(s.baseDir + "/NEW") {
-		result[filename] = s.get(filename)
+		result[filename] = s.Get(filename)
 	}
 
 	return result
 }
 
-func (s Store) set(jobHash string, jobState JobState) {
+func (s Store) Set(jobHash string, jobState JobState) {
   TouchFile(s.getPath(NEW, jobHash))
   // Delete previous state files
   for _, state := range []JobState{RUNNING,SUCCEEDED,FAILED} {

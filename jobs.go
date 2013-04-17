@@ -36,7 +36,7 @@ func NewJob(cmd string) *Job {
   return job
 }
 
-func (job *Job) toString() string {
+func (job *Job) ToString() string {
 	return strings.Join([]string{
 		// time label
 					STATELABELS[job.state],
@@ -44,7 +44,7 @@ func (job *Job) toString() string {
 					job.hash}, "\t")
 }
 
-func (job *Job) run() error {
+func (job *Job) Run() error {
   outputFile := *baseDir + "/new/" + job.hash
   execution  := job.cmd + " &>" + outputFile
 
@@ -68,7 +68,7 @@ func NewJobList(stor *Store, jrnl *Journal) JobList {
 
   jobList := JobList{}
 
-  for hash, state:= range store.getAll() {
+  for hash, state:= range store.GetAll() {
 		job := NewJob(DecodeHash(hash))
 		if state == RUNNING {
 			state = FAILED
@@ -81,7 +81,7 @@ func NewJobList(stor *Store, jrnl *Journal) JobList {
   return jobList
 }
 
-func (jobList JobList) include(job *Job) bool {
+func (jobList JobList) Include(job *Job) bool {
 	for _, j := range jobList {
 		if job.hash == j.hash {
 			return true
@@ -91,14 +91,14 @@ func (jobList JobList) include(job *Job) bool {
 }
 
 // TODO: store state in Job and not JobList
-func (jobList *JobList) add(job Job) {
-		store.set(job.hash, job.state)
+func (jobList *JobList) Add(job Job) {
+		store.Set(job.hash, job.state)
     foo := append(*jobList, job)
     *jobList = foo
 }
 
-func (jobList *JobList) update(job *Job, newState JobState) {
-  journal.log(*job, newState)
-  store.set(job.hash, newState)
+func (jobList *JobList) Update(job *Job, newState JobState) {
+  journal.Log(*job, newState)
+  store.Set(job.hash, newState)
   job.state = newState
 }

@@ -21,7 +21,7 @@ func NewJournal(stdout bool, fileLoc string) *Journal {
   return  &Journal{fp, stdout}
 }
 
-func (j Journal) log(job Job, toState JobState) {
+func (j Journal) Log(job Job, toState JobState) {
     fromLabel := STATELABELS[job.state]
     toLabel   := STATELABELS[toState]
     msg := strings.Join([]string{

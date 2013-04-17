@@ -13,9 +13,7 @@ import (
 
 // TODO
 // + subcommands: run, show, reset
-// + Refactor Job stuff [DONE]
 // + Refactor execution stuff
-// + Add journal style logging [DONE]
 
 var (
   from     = flag.String("from", "", "From command line tool")
@@ -77,20 +75,20 @@ func (fs *Run) Run() {
   for _, arg := range fromListing {
     cmd := *to + " " + arg
     job := NewJob(cmd)
-    if !jobList.include(job) {
+    if !jobList.Include(job) {
       job.state = NEW
-      jobList.add(*job)
+      jobList.Add(*job)
     }
   }
 
   for _, job := range jobList {
     if job.state == NEW {
-      jobList.update(&job, RUNNING)
-      err := job.run()
+      jobList.Update(&job, RUNNING)
+      err := job.Run()
       if err == nil {
-        jobList.update(&job, SUCCEEDED)
+        jobList.Update(&job, SUCCEEDED)
       } else {
-        jobList.update(&job, FAILED)
+        jobList.Update(&job, FAILED)
       }
     }
   }
@@ -121,7 +119,7 @@ func (fs *Show) Run() {
   jobList := NewJobList(store, journal)
 
   for _, job := range jobList {
-    fmt.Println(job.toString())
+    fmt.Println(job.ToString())
   }
 }
 
