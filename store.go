@@ -64,7 +64,16 @@ func (s Store) get(key string) JobState {
   return NEW
 }
 
-func (s *Store) set(jobHash string, jobState JobState) {
+func (s Store) getAll() map[string]JobState {
+	result := make(map[string]JobState)
+	for _, filename := range ListFiles(s.baseDir + "/NEW") {
+		result[filename] = s.get(filename)
+	}
+
+	return result
+}
+
+func (s Store) set(jobHash string, jobState JobState) {
   TouchFile(s.getPath(NEW, jobHash))
   // Delete previous state files
   for _, state := range []JobState{RUNNING,SUCCEEDED,FAILED} {
@@ -80,6 +89,6 @@ func (s *Store) set(jobHash string, jobState JobState) {
 
 }
 
-func (s *Store) close() {
+func (s Store) Close() {
   RemoveFile(s.baseDir + "/lock")
 }

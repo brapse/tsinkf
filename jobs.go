@@ -2,6 +2,7 @@ package main
 
 import (
   "os/exec"
+	"strings"
 )
 
 type JobState int
@@ -35,6 +36,13 @@ func NewJob(cmd string) *Job {
   return job
 }
 
+func (job *Job) toString() string {
+	return strings.Join([]string{
+		// time label
+					STATELABELS[job.state],
+					job.cmd,
+					job.hash}, "\t")
+}
 
 func (job *Job) run() error {
   outputFile := *baseDir + "/new/" + job.hash
@@ -49,49 +57,48 @@ func (job *Job) run() error {
 
 //jobList stuff
 
-type JobList []*Job
+type JobList []Job
 
-var journal = Journal{}
-var store = Store{}
+var journal = &Journal{}
+var store = &Store{}
 
-func NewJobList(cmdName string, listing []string, stor Store, jrnl Journal) JobList {
+func NewJobList(stor *Store, jrnl *Journal) JobList {
   store = stor
   journal = jrnl
 
   jobList := JobList{}
 
-  for _, args := range listing {
-    if len(args) > 0 {
-      cmd := cmdName + " " + args
-      job := NewJob(cmd)
-      // sync state with store
-      state := store.get(job.hash)
-      if state == UNKNOWN {
-        state = NEW
-      } else if state == RUNNING {
-        state = FAILED
-      }
+  for hash, state:= range store.getAll() {
+		job := NewJob(DecodeHash(hash))
+		if state == RUNNING {
+			state = FAILED
+		}
+    job.state = state
 
-      jobList = append(jobList, job)
-      jobList.update(job, state)
-    }
+		jobList = append(jobList, *job)
   }
 
   return jobList
 }
 
-func (jobList JobList) update(job *Job, newState JobState) {
+func (jobList JobList) include(job *Job) bool {
+	for _, j := range jobList {
+		if job.hash == j.hash {
+			return true
+		}
+	}
+	return false
+}
+
+// TODO: store state in Job and not JobList
+func (jobList *JobList) add(job Job) {
+		store.set(job.hash, job.state)
+    foo := append(*jobList, job)
+    *jobList = foo
+}
+
+func (jobList *JobList) update(job *Job, newState JobState) {
   journal.log(*job, newState)
   store.set(job.hash, newState)
   job.state = newState
-}
-
-func (jobList JobList) available() (availableJobs []*Job) {
-  for _,job := range jobList {
-    if job.state == NEW {
-      availableJobs = append(availableJobs, job)
-    }
-  }
-
-  return
 }

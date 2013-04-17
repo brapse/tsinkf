@@ -7,15 +7,15 @@ import (
   "strings"
   "bytes"
   "log"
+  "fmt"
 )
 
 
 // TODO
 // + subcommands: run, show, reset
-// + Refactor
-// + Refactor Job stuff
+// + Refactor Job stuff [DONE]
 // + Refactor execution stuff
-// + Add journal style logging
+// + Add journal style logging [DONE]
 
 var (
   from     = flag.String("from", "", "From command line tool")
@@ -29,7 +29,7 @@ func init() {
   flag.Parse()
 }
 
-func getFrom(fromCmd string) []string {
+func getFrom(fromCmd string) (res []string) {
   cmd := exec.Command("bash", "-c", fromCmd)
   var out bytes.Buffer
   cmd.Stdout = &out
@@ -38,34 +38,101 @@ func getFrom(fromCmd string) []string {
   if err != nil {
     log.Fatal(err)
   }
-  return strings.Split(out.String(), "\n")
+  for _, line := range strings.Split(out.String(), "\n") {
+    if len(line) > 0 {
+      res = append(res, line)
+    }
+  }
+  return
 }
 
-func main() {
-  if *showHelp {
-    flag.PrintDefaults()
-    os.Exit(0)
-  }
+// Run
+type Run struct {
+  from *string
+  to *string
+  baseDir *string
+  debug *bool
+}
 
-  // Create a Filestore
-  store := NewStore(*baseDir)
-  journal := NewJournal(*debug, *baseDir + "/journal.log")
-  // Create a Journal
+func (cmd *Run) DefineFlags(fs *flag.FlagSet) {
+  cmd.from     = fs.String("from", "", "From command line tool")
+  cmd.to       = fs.String("to", "", "To command to pass lines")
+  cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
+  cmd.debug    = fs.Bool("v", false, "Debug info")
+}
 
-  // RUNNING
-  fromListing := getFrom(*from)        // result of the listing
-  jobList     := NewJobList(*to, fromListing, *store, *journal)
+func (cmd *Run) Name() string{
+  return "run"
+}
 
-  for _, job := range jobList.available() {
-    jobList.update(job, RUNNING)
-    err := job.run()
-    if err == nil {
-      jobList.update(job, SUCCEEDED)
-    } else {
-      jobList.update(job, FAILED)
+func (fs *Run) Run() {
+  store   := NewStore(*fs.baseDir)
+  journal := NewJournal(*fs.debug, *fs.baseDir + "/journal.log")
+  defer store.Close()
+  defer journal.Close()
+
+  jobList := NewJobList(store, journal)
+
+  fromListing := getFrom(*fs.from)        // result of the listing
+  for _, arg := range fromListing {
+    cmd := *to + " " + arg
+    job := NewJob(cmd)
+    if !jobList.include(job) {
+      job.state = NEW
+      jobList.add(*job)
     }
   }
 
-  store.close()
-  journal.close()
+  for _, job := range jobList {
+    if job.state == NEW {
+      jobList.update(&job, RUNNING)
+      err := job.run()
+      if err == nil {
+        jobList.update(&job, SUCCEEDED)
+      } else {
+        jobList.update(&job, FAILED)
+      }
+    }
+  }
+}
+
+// Show
+type Show struct {
+  baseDir *string
+  verbose *bool
+  jobs []string
+}
+
+func (cmd *Show) Name() string { return "show" }
+
+func (cmd *Show) DefineFlags(fs *flag.FlagSet) {
+  cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
+  cmd.verbose = fs.Bool("v", false, "Debug info")
+  cmd.jobs    = fs.Args()
+}
+
+func (fs *Show) Run() {
+  store := NewStore(*fs.baseDir)
+  journal := NewJournal(*fs.verbose, *fs.baseDir + "/journal.log")
+
+  defer store.Close()
+  defer journal.Close()
+
+  jobList := NewJobList(store, journal)
+
+  for _, job := range jobList {
+    fmt.Println(job.toString())
+  }
+}
+
+func main() {
+  // do the no args version...
+  switch os.Args[1] {
+    case "run":
+      Parse(new(Run))
+    case "show":
+      Parse(new(Show))
+    default:
+      fmt.Printf("invalid command %s", os.Args[1])
+  }
 }

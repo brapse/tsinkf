@@ -16,4 +16,4 @@ test:
 	go test
 
 example: build
-	./tsinkf -from='echo /bin/bash' -to="wc -l" -v
+	./tsinkf run -from='echo /bin/bash' -to="wc -l" -v

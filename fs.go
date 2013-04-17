@@ -1,6 +1,9 @@
 package main
 
-import "os"
+import (
+	"os"
+	"io/ioutil"
+)
 
 func TouchFile (filename string) {
   _, err := os.OpenFile(filename, os.O_CREATE, 0666)
@@ -31,3 +34,15 @@ func RemoveFile(filepath string) {
   }
 }
 
+func ListFiles(basePath string) (res []string) {
+	fileInfos, err := ioutil.ReadDir(basePath)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, fi := range fileInfos {
+		res = append(res, fi.Name())
+	}
+
+	return res
+}

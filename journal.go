@@ -8,8 +8,8 @@ import (
 )
 
 type Journal struct {
+  *os.File
   writeStdout bool
-  fp *os.File
 }
 
 func NewJournal(stdout bool, fileLoc string) *Journal {
@@ -18,7 +18,7 @@ func NewJournal(stdout bool, fileLoc string) *Journal {
     panic(err)
   }
 
-  return  &Journal{stdout, fp}
+  return  &Journal{fp, stdout}
 }
 
 func (j Journal) log(job Job, toState JobState) {
@@ -33,14 +33,7 @@ func (j Journal) log(job Job, toState JobState) {
     if j.writeStdout {
         fmt.Printf(msg)
     }
-    if _, err := j.fp.WriteString(msg); err != nil {
-        panic(err)
-    }
-}
-
-func (j Journal) close() {
-    err := j.fp.Close()
-    if err != nil {
+    if _, err := j.WriteString(msg); err != nil {
         panic(err)
     }
 }

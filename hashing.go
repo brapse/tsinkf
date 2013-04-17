@@ -14,10 +14,11 @@ func CreateHash(cmd string) string {
 func DecodeHash(encoded string) string {
   decLen := base64.StdEncoding.DecodedLen(len(encoded))
   decoded := make([]byte, decLen)
-  n, err := base64.StdEncoding.Decode(decoded, []byte(encoded))
+  _, err := base64.StdEncoding.Decode(decoded, []byte(encoded))
   if err != nil {
     panic(err)
   }
-  return string(n)
+
+  return string(decoded)
 }
 
