@@ -73,7 +73,7 @@ func (fs *Run) Run() {
 
   fromListing := getFrom(*fs.from)        // result of the listing
   for _, arg := range fromListing {
-    cmd := *to + " " + arg
+    cmd := *fs.to + " " + arg
     job := NewJob(cmd)
     if !jobList.Include(job) {
       job.state = NEW
@@ -110,7 +110,7 @@ func (cmd *Show) DefineFlags(fs *flag.FlagSet) {
 }
 
 func (fs *Show) Run() {
-  store := NewStore(*fs.baseDir)
+  store   := NewStore(*fs.baseDir)
   journal := NewJournal(*fs.verbose, *fs.baseDir + "/journal.log")
 
   defer store.Close()
