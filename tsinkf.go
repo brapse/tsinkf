@@ -49,7 +49,7 @@ func (cmd *Run) Name() string{
   return "run"
 }
 
-func (fs *Run) Run() {
+func (fs *Run) Run(args []string) {
   store   := NewStore(*baseDir)
   journal := NewJournal(*fs.debug, *baseDir + "/journal.log")
   defer store.Close()
@@ -84,7 +84,7 @@ func (fs *Run) Run() {
 type Show struct {
   baseDir *string
   verbose *bool
-  jobs []string
+  jobIds string
 }
 
 func (cmd *Show) Name() string { return "show" }
@@ -92,10 +92,9 @@ func (cmd *Show) Name() string { return "show" }
 func (cmd *Show) DefineFlags(fs *flag.FlagSet) {
   cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
   cmd.verbose = fs.Bool("v", false, "Debug info")
-  cmd.jobs    = fs.Args()
 }
 
-func (fs *Show) Run() {
+func (fs *Show) Run(jobIDs []string) {
   store   := NewStore(*baseDir)
   journal := NewJournal(*fs.verbose, *baseDir + "/journal.log")
 
@@ -104,11 +103,25 @@ func (fs *Show) Run() {
 
   jobList := NewJobList(store, journal)
 
+  printable := func (job Job) bool {
+    if len(jobIDs) > 0 {
+      for _, hash := range jobIDs {
+        if hash == job.hash {
+          return true
+        }
+      }
+      return false
+    }
+    return true
+  }
+
   for _, job := range jobList {
-    if !*fs.verbose {
-      fmt.Println(job.ToString())
-    } else {
-      fmt.Println(job.ToString() + "\n" + job.Content())
+    if printable(job) {
+      if !*fs.verbose {
+        fmt.Println(job.ToString())
+      } else {
+        fmt.Println(job.ToString() + "\n" + job.Content())
+      }
     }
   }
 }
@@ -117,14 +130,17 @@ func (fs *Show) Run() {
 
 type Reset struct {
   baseDir *string
+  jobs []string
 }
 
 func (cmd *Reset) Name() string { return "reset" }
 
 func (cmd *Reset) DefineFlags(fs *flag.FlagSet) {
+  cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
+  cmd.jobs     = fs.Args()
 }
 
-func (fs *Reset) Run() {
+func (fs *Reset) Run([]string) {
   store   := NewStore(*baseDir)
 
   store.Reset()

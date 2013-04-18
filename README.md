@@ -50,11 +50,18 @@ $ tsinkf reset
 ...
 ```
 
+NOTES
+=====
+Jobs are identified by base64 encoding the full command. The current
+persistance mechanism creates files named after the jobID. In cases in
+which the encoded jobID is longer than 255 charecters, tsink will fail
+to create a file and panic.
+
 TODO
 ====
-* Default output
 * tsinkf show jobId
 * tsinkf reset jobId
 * tsink reset -hard  #=> delete the contents
+* Redo the help and subcommand listing
 * Refactor output redirecting
 * Refactor job storage
