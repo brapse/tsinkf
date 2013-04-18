@@ -54,10 +54,6 @@ func (job *Job) ToString() string {
 					job.hash}, "\t")
 }
 
-// what if jobs had results and lastTouch
-// Would that be the responsibility of the Store?
-// Of course it would...
-
 func (job *Job) Run() error {
   // XXX: This sucks
   // The problem here is that it couple the execution with
@@ -76,8 +72,6 @@ func (job *Job) Run() error {
 
   return err
 }
-
-//jobList stuff
 
 type JobList []Job
 

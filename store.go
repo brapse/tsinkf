@@ -32,7 +32,7 @@ func NewStore(relPath string) *Store {
     TouchFile(lockFile)
   }
 
-  for _, directory := range []string{"new", "running", "failed", "succeeded"} {
+  for _, directory := range []string{"NEW", "RUNNING", "FAILED", "SUCCEEDED"} {
     todo := baseDir + "/" + directory
     err := os.MkdirAll(todo, 0755)
     if err != nil {

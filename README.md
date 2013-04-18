@@ -5,7 +5,7 @@ Perform a command on a set of arguments exactly once.
 Usage
 =====
 ```
-$ tsinkf run --from="find /bin -type f|head" --to="wc -l"
+$ tsinkf run -from="find /bin -type f|head" -to="wc -l"
 ```
 
 ```

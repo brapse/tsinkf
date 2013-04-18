@@ -2,6 +2,7 @@ package main
 
 import (
   "encoding/base64"
+  "strings"
 )
 
 func CreateHash(cmd string) string {
@@ -11,6 +12,7 @@ func CreateHash(cmd string) string {
   return string(encoded)
 }
 
+var null = string([]byte{0})
 func DecodeHash(encoded string) string {
   decLen := base64.StdEncoding.DecodedLen(len(encoded))
   decoded := make([]byte, decLen)
@@ -19,6 +21,6 @@ func DecodeHash(encoded string) string {
     panic(err)
   }
 
-  return string(decoded)
+  // XXX: Remove null byte(s)
+  return strings.Replace(string(decoded), null, "", -1)
 }
-

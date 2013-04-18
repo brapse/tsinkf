@@ -12,8 +12,11 @@ default: example
 
 build:
 	go build
-test:
+
+test: build
 	go test
 
 example: build
-	./tsinkf run -from='echo /bin/bash' -to="wc -l" -v
+	./tsinkf run -from="find /bin -type f|head" -to="wc -l"
+	./tsinkf show -v
+
