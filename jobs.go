@@ -3,6 +3,7 @@ package main
 import (
   "os/exec"
 	"strings"
+  "time"
 )
 
 type JobState int
@@ -36,17 +37,37 @@ func NewJob(cmd string) *Job {
   return job
 }
 
+func (job Job) Content() string {
+  // XXX refactor this
+  return ReadFile(store.getPath(NEW,job.hash))
+}
+
+func (job Job) LastTouch() time.Time {
+  return LastTouch(store.getPath(NEW, job.hash))
+}
+
 func (job *Job) ToString() string {
 	return strings.Join([]string{
-		// time label
+          FormatTime(job.LastTouch()),
 					STATELABELS[job.state],
 					job.cmd,
 					job.hash}, "\t")
 }
 
+// what if jobs had results and lastTouch
+// Would that be the responsibility of the Store?
+// Of course it would...
+
 func (job *Job) Run() error {
   // XXX: This sucks
+  // The problem here is that it couple the execution with
+  // responsibilities of the "store".
+  // One way around this might be to use some named pipe or something
+  // but there is a deeper problem of "running" and "storing" being coupled.
+
+  // XXX: it might make sense to put the actual file in a stateless /jobs/ file
   outputFile := *baseDir + "/new/" + job.hash
+  // XXX: This should append, so reruns use the sae file
   execution  := job.cmd + " &>" + outputFile
 
   //TODO setup some proper piping to clean up the process tree 

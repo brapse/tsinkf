@@ -106,7 +106,11 @@ func (fs *Show) Run() {
   jobList := NewJobList(store, journal)
 
   for _, job := range jobList {
-    fmt.Println(job.ToString())
+    if !*fs.verbose {
+      fmt.Println(job.ToString())
+    } else {
+      fmt.Println(job.ToString() + "\n" + job.Content())
+    }
   }
 }
 

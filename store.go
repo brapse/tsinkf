@@ -8,6 +8,9 @@ type Store struct {
   baseDir string
 }
 
+// Store is a persistance method for jobs
+// It should "store" everything we need to know about Jobs
+
 func NewStore(relPath string) *Store {
   // TODO: check if we need to add the full path
   cwd, err := os.Getwd()
@@ -86,8 +89,9 @@ func (s Store) Set(jobHash string, jobState JobState) {
       panic(err)
     }
   }
-
 }
+
+// TODO: figure out how to get job output and event time output with show
 
 func (s Store) Reset() {
   for jobHash, _ := range s.GetAll() {

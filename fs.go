@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"io/ioutil"
+  "time"
 )
 
 func TouchFile (filename string) {
@@ -45,4 +46,25 @@ func ListFiles(basePath string) (res []string) {
 	}
 
 	return res
+}
+
+func ReadFile(filepath string) string {
+  content, err := ioutil.ReadFile(filepath)
+
+  if err != nil {
+    panic(err)
+  }
+
+  return string(content)
+}
+
+func LastTouch(filepath string) time.Time{
+  info, err := os.Stat(filepath)
+
+  if err != nil {
+    panic(err)
+
+  }
+
+  return info.ModTime()
 }
