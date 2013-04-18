@@ -2,7 +2,6 @@ package main
 
 import (
   "flag"
-  "os"
   "os/exec"
   "strings"
   "bytes"
@@ -134,14 +133,5 @@ func (fs *Reset) Run() {
 
 func main() {
   // do the no args version...
-  switch os.Args[1] {
-    case "run":
-      Parse(new(Run))
-    case "show":
-      Parse(new(Show))
-    case "reset":
-      Parse(new(Reset))
-    default:
-      fmt.Printf("invalid command %s", os.Args[1])
-  }
+  Parse(new(Run), new(Show), new(Reset))
 }
