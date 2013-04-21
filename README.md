@@ -65,8 +65,6 @@ to create a file and panic.
 
 TODO
 ====
-* tsinkf show jobId
-* tsinkf reset jobId
 * tsink reset -hard  #=> delete the contents
 * Redo the help and subcommand listing
 * Refactor output redirecting
