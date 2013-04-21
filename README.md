@@ -4,6 +4,14 @@ Perform a command on a set of arguments exactly once.
 
 Install
 =======
+Install [Go 1][1], either [from source][2] or [with a prepackaged binary][3]. Then,
+```bash
+$ go get github.com/brapse/tsinkf
+```
+
+[1]: http://golang.org
+[2]: http://golang.org/doc/install/source
+[3]: http://golang.org/doc/install
 
 
 Usage
@@ -21,7 +29,7 @@ disk (.tsinkf/ by default) to ensure it does things exactly once.
 
 
 tsinkf show will inspect the state (.tsinkf/ by default).
-```
+```bash
 $ tsinkf show
 2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/cat d2MgLWwgL2Jpbi9jYXQ=
 2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/chmod d2MgLWwgL2Jpbi9jaG1vZA==
@@ -33,7 +41,7 @@ command id (base64 version of the command)
 
 Running tsinkf show in verbose mode (-v flag) will include the stdout of
 the commands execution
-```
+```bash
 $ tsinkf show -v
 2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/cat d2MgLWwgL2Jpbi9jYXQ=
 57 /bin/cat
@@ -45,7 +53,7 @@ $ tsinkf show -v
 
 Running tsinkf will reset state of all the jobs, making it possible to
 re-run everything
-```
+```bash
 $ tsinkf reset
 ...
 ```
@@ -72,6 +80,6 @@ TODO
 
 LICENSE
 =======
-BSD 2-Clause, see [LICENSE][0] for more details.
+BSD 2-Clause, see [LICENSE][4] for more details.
 
-[0]: https://github.com/brapse/tsinkf/blob/master/LICENSE
+[4]: https://github.com/brapse/tsinkf/blob/master/LICENSE
