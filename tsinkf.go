@@ -36,13 +36,13 @@ func getFrom(fromCmd string) (res []string) {
 type Run struct {
   from *string
   to *string
-  debug *bool
+  verbose *bool
 }
 
 func (cmd *Run) DefineFlags(fs *flag.FlagSet) {
   cmd.from     = fs.String("from", "", "From command line tool")
   cmd.to       = fs.String("to", "", "To command to pass lines")
-  cmd.debug    = fs.Bool("v", false, "Debug info")
+  cmd.verbose  = fs.Bool("v", false, "Debug info")
 }
 
 func (cmd *Run) Name() string{
@@ -51,7 +51,7 @@ func (cmd *Run) Name() string{
 
 func (fs *Run) Run(args []string) {
   store   := NewStore(*baseDir)
-  journal := NewJournal(*fs.debug, *baseDir + "/journal.log")
+  journal := NewJournal(*fs.verbose, *baseDir + "/journal.log")
   defer store.Close()
   defer journal.Close()
 
@@ -120,7 +120,6 @@ func (fs *Show) Run(jobIDs []string) {
 
 type Reset struct {
   baseDir *string
-  jobs []string
   verbose *bool
 }
 
