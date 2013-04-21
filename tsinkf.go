@@ -121,20 +121,31 @@ func (fs *Show) Run(jobIDs []string) {
 type Reset struct {
   baseDir *string
   jobs []string
+  verbose *bool
 }
 
 func (cmd *Reset) Name() string { return "reset" }
 
 func (cmd *Reset) DefineFlags(fs *flag.FlagSet) {
   cmd.baseDir  = fs.String("dir", ".tsinkf", "directory where state files are created")
-  cmd.jobs     = fs.Args()
+  cmd.verbose = fs.Bool("v", false, "Debug info")
 }
 
-func (fs *Reset) Run([]string) {
+func (fs *Reset) Run(jobIDs []string) {
   store   := NewStore(*baseDir)
+  journal := NewJournal(*fs.verbose, *baseDir + "/journal.log")
 
-  store.Reset()
-  store.Close()
+  defer journal.Close()
+  defer store.Close()
+
+  jobList   := NewJobList(store, journal)
+  resetable := JobSpecific(jobIDs)
+
+  for _, job := range jobList {
+    if resetable(job) {
+      store.Set(job.hash, NEW)
+    }
+  }
 }
 
 func main() {

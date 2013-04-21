@@ -91,8 +91,6 @@ func (s Store) Set(jobHash string, jobState JobState) {
   }
 }
 
-// TODO: figure out how to get job output and event time output with show
-
 func (s Store) Reset() {
   for jobHash, _ := range s.GetAll() {
     for _, state := range []JobState{RUNNING,SUCCEEDED,FAILED} {
