@@ -69,3 +69,9 @@ TODO
 * Redo the help and subcommand listing
 * Refactor output redirecting
 * Refactor job storage
+
+LICENSE
+=======
+BSD 2-Clause, see [LICENSE][0] for more details.
+
+[0]: https://github.com/brapse/tsinkf/blob/master/LICENSE
