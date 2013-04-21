@@ -103,17 +103,7 @@ func (fs *Show) Run(jobIDs []string) {
 
   jobList := NewJobList(store, journal)
 
-  printable := func (job Job) bool {
-    if len(jobIDs) > 0 {
-      for _, hash := range jobIDs {
-        if hash == job.hash {
-          return true
-        }
-      }
-      return false
-    }
-    return true
-  }
+  printable := JobSpecific(jobIDs)
 
   for _, job := range jobList {
     if printable(job) {
