@@ -143,7 +143,7 @@ func (fs *Reset) Run(jobIDs []string) {
 
   for _, job := range jobList {
     if resetable(job) {
-      store.Set(job.hash, NEW)
+      jobList.Update(&job, NEW)
     }
   }
 }
