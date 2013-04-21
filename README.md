@@ -1,9 +1,7 @@
-tsinkf
-======
+# tsinkf
 Perform a command on a set of arguments exactly once.
 
-Install
-=======
+## Install
 Install [Go 1][1], either [from source][2] or [with a prepackaged binary][3]. Then,
 ```bash
 $ go get github.com/brapse/tsinkf
@@ -14,16 +12,12 @@ $ go get github.com/brapse/tsinkf
 [3]: http://golang.org/doc/install
 
 
-Usage
-=====
-
+## Usage
 tsinkf run with -from argument and -to commands will execute every line
 of the output of from as the last argument of the to command
-
 ```
 $ tsinkf run -from="find /bin -type f|head" -to="wc -l"
 ```
-
 Behind the scene tsink will persist result of each of the commands to
 disk (.tsinkf/ by default) to ensure it does things exactly once.
 
@@ -35,7 +29,6 @@ $ tsinkf show
 2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/chmod d2MgLWwgL2Jpbi9jaG1vZA==
 ...
 ```
-
 The output contains the completion time, the state, the command and the
 command id (base64 version of the command)
 
@@ -58,28 +51,24 @@ $ tsinkf reset
 ...
 ```
 
-STATUS
-======
+## Status
 * Alpha quality
 * Not used in production
 * Some features and sketches and not fully fleshed out
 
-NOTES
-=====
+## Notes
 Jobs are identified by base64 encoding the full command. The current
 persistance mechanism creates files named after the jobID. In cases in
 which the encoded jobID is longer than 255 charecters, tsink will fail
 to create a file and panic.
 
-TODO
-====
+## Todo
 * tsink reset -hard  #=> delete the contents
 * Redo the help and subcommand listing
 * Refactor output redirecting
 * Refactor job storage
 
-LICENSE
-=======
+## License
 BSD 2-Clause, see [LICENSE][4] for more details.
 
 [4]: https://github.com/brapse/tsinkf/blob/master/LICENSE
