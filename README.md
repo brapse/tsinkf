@@ -50,6 +50,12 @@ $ tsinkf reset
 ...
 ```
 
+STATUS
+======
+* Alpha quality
+* Not used in production
+* Some features and sketches and not fully fleshed out
+
 NOTES
 =====
 Jobs are identified by base64 encoding the full command. The current
