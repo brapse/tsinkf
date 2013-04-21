@@ -1,6 +1,20 @@
 # tsinkf
 Perform a command on a set of arguments exactly once.
 
+## Motivation
+Sometimes you want to perform a process for a list of parameters with
+some certainty that things run to completion. For instance running a
+script on a directory of log files that inserts records into a database.
+The most minimal workflow system to provide this certainty would:
+
+* Run the script on each file exactly once
+* Keep track of output of the script run as well as the status (exit
+  code)
+* Re-run the file in cases of failure
+
+tsinkf does these things without making too many assumptions about the
+particulars.
+
 ## Install
 Install [Go 1][1], either [from source][2] or [with a prepackaged binary][3]. Then,
 ```bash
@@ -11,9 +25,8 @@ $ go get github.com/brapse/tsinkf
 [2]: http://golang.org/doc/install/source
 [3]: http://golang.org/doc/install
 
-
 ## Usage
-tsinkf run with -from argument and -to commands will execute every line
+`tsinkf run` with `-from` argument and `-to` commands will execute every line
 of the output of from as the last argument of the to command
 ```
 $ tsinkf run -from="find /bin -type f|head" -to="wc -l"
@@ -22,7 +35,7 @@ Behind the scene tsink will persist result of each of the commands to
 disk (.tsinkf/ by default) to ensure it does things exactly once.
 
 
-tsinkf show will inspect the state (.tsinkf/ by default).
+`tsinkf show` will inspect the state (.tsinkf/ by default).
 ```bash
 $ tsinkf show
 2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/cat d2MgLWwgL2Jpbi9jYXQ=
@@ -30,9 +43,9 @@ $ tsinkf show
 ...
 ```
 The output contains the completion time, the state, the command and the
-command id (base64 version of the command)
+jobID (base64 version of the command)
 
-Running tsinkf show in verbose mode (-v flag) will include the stdout of
+Running `tsinkf show` in verbose mode (`-v` flag) will include the stdout of
 the commands execution
 ```bash
 $ tsinkf show -v
@@ -44,12 +57,13 @@ $ tsinkf show -v
 ...
 ```
 
-Running tsinkf will reset state of all the jobs, making it possible to
+Running `tsinkf reset` state of all the jobs, making it possible to
 re-run everything
 ```bash
 $ tsinkf reset
 ...
 ```
+
 
 ## Status
 * Alpha quality
@@ -58,9 +72,9 @@ $ tsinkf reset
 
 ## Notes
 Jobs are identified by base64 encoding the full command. The current
-persistance mechanism creates files named after the jobID. In cases in
+persistance mechanism creates files named this jobID. In cases in
 which the encoded jobID is longer than 255 charecters, tsink will fail
-to create a file and panic.
+to create a file and crash.
 
 ## Todo
 * tsink reset -hard  #=> delete the contents
