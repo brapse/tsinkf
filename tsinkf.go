@@ -60,21 +60,21 @@ func (fs *Run) Run(args []string) {
   fromListing := getFrom(*fs.from)        // result of the listing
   for _, arg := range fromListing {
     cmd := *fs.to + " " + arg
-    job := NewJob(cmd)
-    if !jobList.Include(job) {
-      job.state = NEW
+    job := NewJob(cmd, *store, *journal)
+    if !jobList.Include(*job) {
+      job.SetState(NEW)
       jobList.Add(*job)
     }
   }
 
   for _, job := range jobList {
-    if job.state == NEW {
-      jobList.Update(&job, RUNNING)
+    if job.GetState() == NEW {
+      job.SetState(RUNNING)
       err := job.Run()
       if err == nil {
-        jobList.Update(&job, SUCCEEDED)
+        job.SetState(SUCCEEDED)
       } else {
-        jobList.Update(&job, FAILED)
+        job.SetState(FAILED)
       }
     }
   }
@@ -110,7 +110,7 @@ func (fs *Show) Run(jobIDs []string) {
       if !*fs.verbose {
         fmt.Println(job.ToString())
       } else {
-        fmt.Println(job.ToString() + "\n" + job.Content())
+        fmt.Println(job.ToString() + "\n" + job.GetOutput())
       }
     }
   }
@@ -142,7 +142,7 @@ func (fs *Reset) Run(jobIDs []string) {
 
   for _, job := range jobList {
     if resetable(job) {
-      jobList.Update(&job, NEW)
+      job.SetState(NEW)
     }
   }
 }

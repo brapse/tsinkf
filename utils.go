@@ -15,7 +15,7 @@ func JobSpecific(jobIDs []string) action {
   return func (target Job) bool {
     if len(jobIDs) > 0 {
       for _, jobID := range jobIDs{
-        if jobID == target.hash {
+        if jobID == target.id {
           return true
         }
       }

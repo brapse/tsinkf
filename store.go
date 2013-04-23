@@ -1,15 +1,13 @@
 package main
 import (
   "os"
+  "time"
 )
 
 // Storage stuff
 type Store struct {
   baseDir string
 }
-
-// Store is a persistance method for jobs
-// It should "store" everything we need to know about Jobs
 
 func NewStore(relPath string) *Store {
   // TODO: check if we need to add the full path
@@ -51,40 +49,51 @@ func (s Store) getPath(jobState JobState, jobHash string) string {
   return s.baseDir + "/" + STATELABELS[jobState] + "/" + jobHash
 }
 
-func (s Store) Get(key string) JobState {
-  if !FileExists(s.getPath(NEW, key)) {
+func (s Store) GetState(jobID string) JobState {
+  if !FileExists(s.getPath(NEW, jobID)) {
     return UNKNOWN
   }
 
-  if FileExists(s.getPath(RUNNING, key)) {
+  if FileExists(s.getPath(RUNNING, jobID)) {
     return RUNNING
-  } else if FileExists(s.getPath(FAILED, key)) {
+  } else if FileExists(s.getPath(FAILED, jobID)) {
     return FAILED
-  } else if FileExists(s.getPath(SUCCEEDED,key)) {
+  } else if FileExists(s.getPath(SUCCEEDED,jobID)) {
     return SUCCEEDED
   }
 
   return NEW
 }
 
-func (s Store) GetAll() map[string]JobState {
-	result := make(map[string]JobState)
+func (s Store) SetOutput(jobID string, output string) {
+  AppendToFile(s.getPath(NEW,jobID), output)
+}
+
+func (s Store) GetOutput(jobID string) string {
+  return ReadFile(s.getPath(NEW, jobID))
+}
+
+func (s Store) GetLastTouch(jobID string) time.Time {
+  return LastTouch(s.getPath(NEW,jobID))
+}
+
+func (s Store) GetJobIDs() (result []string) {
 	for _, filename := range ListFiles(s.baseDir + "/NEW") {
-		result[filename] = s.Get(filename)
+		result = append(result, filename)
 	}
 
 	return result
 }
 
-func (s Store) Set(jobHash string, jobState JobState) {
-  TouchFile(s.getPath(NEW, jobHash))
+func (s Store) SetState(jobID string, jobState JobState) {
+  TouchFile(s.getPath(NEW, jobID))
   // Delete previous state files
   for _, state := range []JobState{RUNNING,SUCCEEDED,FAILED} {
-    RemoveFile(s.getPath(state, jobHash))
+    RemoveFile(s.getPath(state, jobID))
   }
 
   if jobState != NEW {
-    err := os.Symlink(s.getPath(NEW, jobHash), s.getPath(jobState, jobHash))
+    err := os.Symlink(s.getPath(NEW, jobID), s.getPath(jobState, jobID))
     if err != nil {
       panic(err)
     }
@@ -92,9 +101,9 @@ func (s Store) Set(jobHash string, jobState JobState) {
 }
 
 func (s Store) Reset() {
-  for jobHash, _ := range s.GetAll() {
+  for _, jobID := range s.GetJobIDs() {
     for _, state := range []JobState{RUNNING,SUCCEEDED,FAILED} {
-      RemoveFile(s.getPath(state, jobHash))
+      RemoveFile(s.getPath(state, jobID))
     }
   }
 }

@@ -22,13 +22,13 @@ func NewJournal(stdout bool, fileLoc string) *Journal {
 }
 
 func (j Journal) Log(job Job, toState JobState) {
-    fromLabel := STATELABELS[job.state]
+    fromLabel := STATELABELS[job.GetState()]
     toLabel   := STATELABELS[toState]
     msg := strings.Join([]string{
       FormatTime(time.Now()),
       fromLabel + "->" + toLabel,
       job.cmd,
-      job.hash }, "\t") + "\n"
+      job.id}, "\t") + "\n"
 
     if j.writeStdout {
         fmt.Printf(msg)

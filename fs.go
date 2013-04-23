@@ -26,6 +26,18 @@ func FileExists(filepath string) bool {
   return true
 }
 
+func AppendToFile(filepath string, content string) {
+  f, err := os.OpenFile(filepath, os.O_RDWR|os.O_APPEND, 0755)
+  if err != nil {
+    panic(err)
+  }
+
+  _, err = f.WriteString(content)
+  if err != nil {
+    panic(err)
+  }
+}
+
 func RemoveFile(filepath string) {
   if FileExists(filepath) {
     err := os.Remove(filepath)

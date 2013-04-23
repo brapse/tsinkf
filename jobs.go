@@ -25,50 +25,53 @@ var STATELABELS = map[JobState] string {
 }
 
 type Job struct {
-  hash string
+  id string
   cmd string
-  state JobState
+  journal Journal
+  store Store
 }
 
-func NewJob(cmd string) *Job {
-  hash := CreateHash(cmd)
+func NewJob(cmd string, store Store, journal Journal) *Job {
+  jobID := CreateHash(cmd)
+  state := store.GetState(jobID)
+  if state == UNKNOWN {
+    store.SetState(jobID, NEW)
+  }
+  // TODO: Journal
 
-  job := &Job{hash, cmd, UNKNOWN}
+  job := &Job{jobID, cmd, journal, store}
   return job
 }
 
-func (job Job) Content() string {
-  // XXX refactor this
-  return ReadFile(store.getPath(NEW,job.hash))
+func (job Job) SetState(state JobState) {
+  job.journal.Log(job, state)
+  job.store.SetState(job.id, state)
 }
 
-func (job Job) LastTouch() time.Time {
-  return LastTouch(store.getPath(NEW, job.hash))
+func (job Job) GetOutput() string {
+  return job.store.GetOutput(job.id)
+}
+
+func (job Job) GetLastTouch() time.Time {
+  return job.store.GetLastTouch(job.id)
+}
+
+func (job Job) GetState() JobState {
+  return job.store.GetState(job.id)
 }
 
 func (job *Job) ToString() string {
 	return strings.Join([]string{
-          FormatTime(job.LastTouch()),
-					STATELABELS[job.state],
+          FormatTime(job.GetLastTouch()),
+					STATELABELS[job.GetState()],
 					job.cmd,
-					job.hash}, "\t")
+					job.id}, "\t")
 }
 
 func (job *Job) Run() error {
-  // XXX: This sucks
-  // The problem here is that it couple the execution with
-  // responsibilities of the "store".
-  // One way around this might be to use some named pipe or something
-  // but there is a deeper problem of "running" and "storing" being coupled.
-
-  // XXX: it might make sense to put the actual file in a stateless /jobs/ file
-  outputFile := *baseDir + "/new/" + job.hash
-  // XXX: This should append, so reruns use the sae file
-  execution  := job.cmd + " &>" + outputFile
-
   //TODO setup some proper piping to clean up the process tree 
-  cmd := exec.Command("bash","-c", execution)
-  err := cmd.Run()
+  out, err := exec.Command("date").Output()
+  job.store.SetOutput(job.id, string(out))
 
   return err
 }
@@ -84,12 +87,11 @@ func NewJobList(stor *Store, jrnl *Journal) JobList {
 
   jobList := JobList{}
 
-  for hash, state:= range store.GetAll() {
-		job := NewJob(DecodeHash(hash))
-		if state == RUNNING {
-			state = FAILED
+  for _, jobID := range store.GetJobIDs() {
+		job := NewJob(DecodeHash(jobID), *stor, *jrnl)
+		if job.GetState() == RUNNING {
+      job.SetState(FAILED)
 		}
-    job.state = state
 
 		jobList = append(jobList, *job)
   }
@@ -97,9 +99,9 @@ func NewJobList(stor *Store, jrnl *Journal) JobList {
   return jobList
 }
 
-func (jobList JobList) Include(job *Job) bool {
+func (jobList JobList) Include(job Job) bool {
 	for _, j := range jobList {
-		if job.hash == j.hash {
+		if job.id== j.id{
 			return true
 		}
 	}
@@ -108,13 +110,6 @@ func (jobList JobList) Include(job *Job) bool {
 
 // TODO: store state in Job and not JobList
 func (jobList *JobList) Add(job Job) {
-		store.Set(job.hash, job.state)
     foo := append(*jobList, job)
     *jobList = foo
-}
-
-func (jobList *JobList) Update(job *Job, newState JobState) {
-  journal.Log(*job, newState)
-  store.Set(job.hash, newState)
-  job.state = newState
 }
