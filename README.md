@@ -26,33 +26,30 @@ $ tsinkf run wc -l /usr/share/dict/words
 2013-04-24 22:43:58     RUNNING->SUCCEEDED      wc -l /usr/share/dict/words     d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz 
 ```
 
-followed by
+Performing the command again will result in no output because the input domain has been executed successfully.
+Behind the scenes tsink will persist the result of the commands to disk (.tsinkf/ by default).
 ```{bash}
 $ tsinkf run wc -l /usr/share/dict/words
 ```
 
-Will result in no output because the input domain has been executed successfully.
-Behind the scene tsink will persist result of each of the commands to
-disk (.tsinkf/ by default) to ensure it does things exactly once.
-
-`tsinkf show` will inspect the state (.tsinkf/ by default).
+`tsinkf show` can be used to inspect the state (.tsinkf/ by default).
+The output contains the completion time, the state, the command and the
+jobID (base64 version of the command).
 ```{bash}
 $ tsinkf show
 2013-04-24 22:43:58     SUCCEEDED       wc -l /usr/share/dict/words d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
 ```
-The output contains the completion time, the state, the command and the
-jobID (base64 version of the command).
 
 A specific job can be inspected and output shown by including the `-v`
 flag along with the jobID as parameters to `tsinkf show`.
 ```{bash}
+$ tsinkf show -v d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
 2013-04-24 22:43:58     SUCCEEDED     wc -l /usr/share/dict/words d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
 235886 /usr/share/dict/words
 ```
 
-
-Running `tsinkf reset` state of all the jobs, making it possible to
-re-run everything.
+Running `tsinkf reset` will reset the state of all the jobs. Subsequent executions will
+append their output to the original output.
 ```{bash}
 $ tsinkf reset -v
 2013-04-24 22:48:25     SUCCEEDED->NEW  wc -l /usr/share/dict/words d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
