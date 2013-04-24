@@ -1,19 +1,10 @@
 # tsinkf
-Perform a command on a set of arguments exactly once.
+Stateful command execution
 
 ## Motivation
-Sometimes you want to perform a process for a list of parameters with
-some certainty that things run to completion. For instance running a
-script on a directory of log files that inserts records into a database.
-The most minimal workflow system to provide this certainty would:
-
-* Run the script on each file exactly once
-* Keep track of output of the script run as well as the status (exit
-  code)
-* Re-run the file in cases of failure
-
-tsinkf does these things without making too many assumptions about the
-particulars.
+Sometimes you want to perform command exactly
+once. Tsinkf keeps track what commands have been executed and their
+results
 
 ## Install
 Install [Go 1][1], either [from source][2] or [with a prepackaged binary][3]. Then,
@@ -26,47 +17,49 @@ $ go get github.com/brapse/tsinkf
 [3]: http://golang.org/doc/install
 
 ## Usage
-`tsinkf run` with `-from` argument and `-to` commands will execute every line
-of the output of from as the last argument of the to command
+Execute `tsinkf run` followed by a command.
+
+Running:
+```bash
+$ tsinkf run wc -l /usr/share/dict/words
+2013-04-24 22:43:58     NEW->RUNNING    wc -l /usr/share/dict/words d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
+2013-04-24 22:43:58     RUNNING->SUCCEEDED      wc -l /usr/share/dict/words     d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz 
 ```
-$ tsinkf run -from="find /bin -type f|head" -to="wc -l"
+
+followed by
+```{bash}
+$ tsinkf run wc -l /usr/share/dict/words
 ```
+
+Will result in no output because the input domain has been executed successfully.
 Behind the scene tsink will persist result of each of the commands to
 disk (.tsinkf/ by default) to ensure it does things exactly once.
 
-
 `tsinkf show` will inspect the state (.tsinkf/ by default).
-```bash
+```{bash}
 $ tsinkf show
-2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/cat d2MgLWwgL2Jpbi9jYXQ=
-2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/chmod d2MgLWwgL2Jpbi9jaG1vZA==
-...
+2013-04-24 22:43:58     SUCCEEDED       wc -l /usr/share/dict/words d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
 ```
 The output contains the completion time, the state, the command and the
-jobID (base64 version of the command)
+jobID (base64 version of the command).
 
-Running `tsinkf show` in verbose mode (`-v` flag) will include the stdout of
-the commands execution
-```bash
-$ tsinkf show -v
-2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/cat d2MgLWwgL2Jpbi9jYXQ=
-57 /bin/cat
-
-2013-04-18 15:37:58     SUCCEEDED       wc -l /bin/chmod d2MgLWwgL2Jpbi9jaG1vZA==
-49 /bin/chmod
-...
+A specific job can be inspected and output shown by including the `-v`
+flag along with the jobID as parameters to `tsinkf show`.
+```{bash}
+2013-04-24 22:43:58     SUCCEEDED     wc -l /usr/share/dict/words d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
+235886 /usr/share/dict/words
 ```
+
 
 Running `tsinkf reset` state of all the jobs, making it possible to
-re-run everything
-```bash
-$ tsinkf reset
-...
+re-run everything.
+```{bash}
+$ tsinkf reset -v
+2013-04-24 22:48:25     SUCCEEDED->NEW  wc -l /usr/share/dict/words d2MgLWwgL3Vzci9zaGFyZS9kaWN0L3dvcmRz
 ```
 
-
 ## Status
-* Alpha quality
+* Beta quality
 * Not used in production
 * Some features and sketches and not fully fleshed out
 
@@ -80,7 +73,6 @@ to create a file and crash.
 * tsink reset -hard  #=> delete the contents
 * Redo the help and subcommand listing
 * Refactor output redirecting
-* Refactor job storage
 
 ## License
 BSD 2-Clause, see [LICENSE][4] for more details.

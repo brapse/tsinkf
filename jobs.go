@@ -70,7 +70,7 @@ func (job *Job) ToString() string {
 
 func (job *Job) Run() error {
   //TODO setup some proper piping to clean up the process tree 
-  out, err := exec.Command("date").Output()
+  out, err := exec.Command("bash", "-c", job.cmd).Output()
   job.store.SetOutput(job.id, string(out))
 
   return err

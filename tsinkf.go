@@ -2,11 +2,10 @@ package main
 
 import (
   "flag"
-  "os/exec"
   "strings"
-  "bytes"
-  "log"
+  "io/ioutil"
   "fmt"
+  "os"
 )
 
 var baseDir = flag.String("dir", ".tsinkf", "directory where state files are created")
@@ -15,16 +14,13 @@ func init() {
   flag.Parse()
 }
 
-func getFrom(fromCmd string) (res []string) {
-  cmd := exec.Command("bash", "-c", fromCmd)
-  var out bytes.Buffer
-  cmd.Stdout = &out
-
-  err := cmd.Run()
+func getFrom() (res []string) {
+  out, err := ioutil.ReadAll(os.Stdin)
   if err != nil {
-    log.Fatal(err)
+    panic(err)
   }
-  for _, line := range strings.Split(out.String(), "\n") {
+
+  for _, line := range strings.Split(string(out), "\n") {
     if len(line) > 0 {
       res = append(res, line)
     }
@@ -57,25 +53,20 @@ func (fs *Run) Run(args []string) {
 
   jobList := NewJobList(store, journal)
 
-  fromListing := getFrom(*fs.from)        // result of the listing
-  for _, arg := range fromListing {
-    cmd := *fs.to + " " + arg
-    job := NewJob(cmd, *store, *journal)
-    if !jobList.Include(*job) {
-      job.SetState(NEW)
-      jobList.Add(*job)
-    }
+  cmd := strings.Join(args, " ")
+  job := NewJob(cmd, *store, *journal)
+  if !jobList.Include(*job) {
+    job.SetState(NEW)
+    jobList.Add(*job)
   }
 
-  for _, job := range jobList {
-    if job.GetState() == NEW {
-      job.SetState(RUNNING)
-      err := job.Run()
-      if err == nil {
-        job.SetState(SUCCEEDED)
-      } else {
-        job.SetState(FAILED)
-      }
+  if job.GetState() == NEW {
+    job.SetState(RUNNING)
+    err := job.Run()
+    if err == nil {
+      job.SetState(SUCCEEDED)
+    } else {
+      job.SetState(FAILED)
     }
   }
 }

@@ -17,6 +17,6 @@ test: build
 	go test
 
 example: build
-	./tsinkf run -from="find /bin -type f|head" -to="wc -l"
+	./tsinkf reset
+	./tsinkf run wc -l /usr/share/dict/words
 	./tsinkf show -v
-
