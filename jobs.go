@@ -4,6 +4,9 @@ import (
   "os/exec"
 	"strings"
   "time"
+  "io"
+  "io/ioutil"
+  "os"
 )
 
 type JobState int
@@ -69,9 +72,32 @@ func (job *Job) ToString() string {
 }
 
 func (job *Job) Run() error {
-  //TODO setup some proper piping to clean up the process tree 
-  out, err := exec.Command("bash", "-c", job.cmd).Output()
-  job.store.SetOutput(job.id, string(out))
+  cmd := exec.Command("bash", "-c", job.cmd)
+  stdout, err := cmd.StdoutPipe()
+  if err != nil {
+    panic(err)
+  }
+  stderr, err := cmd.StderrPipe()
+  if err != nil {
+    panic(err)
+  }
+
+  cmd.Start()
+
+  tStdout := io.TeeReader(stdout, os.Stdout)
+  tStderr := io.TeeReader(stderr, os.Stderr)
+
+  allOutput := io.MultiReader(tStdout, tStderr)
+
+  go func() {
+    buf, err := ioutil.ReadAll(allOutput)
+    if err != nil {
+      panic(err)
+    }
+    job.store.SetOutput(job.id, string(buf))
+  }()
+
+  cmd.Wait()
 
   return err
 }
