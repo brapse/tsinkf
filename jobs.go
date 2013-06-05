@@ -7,7 +7,9 @@ import (
   "io"
   "io/ioutil"
   "os"
+  "sync"
 )
+
 
 type JobState int
 
@@ -82,24 +84,47 @@ func (job *Job) Run() error {
     panic(err)
   }
 
-  cmd.Start()
-
   tStdout := io.TeeReader(stdout, os.Stdout)
   tStderr := io.TeeReader(stderr, os.Stderr)
 
-  allOutput := io.MultiReader(tStdout, tStderr)
+  reader, writer := io.Pipe()
+
+  var wg sync.WaitGroup
 
   go func() {
-    buf, err := ioutil.ReadAll(allOutput)
+    wg.Add(1)
+    defer wg.Done()
+
+    buf, err := ioutil.ReadAll(reader)
     if err != nil {
       panic(err)
     }
     job.store.SetOutput(job.id, string(buf))
   }()
 
-  cmd.Wait()
+  go func () {
+    wg.Add(1)
+    defer wg.Done()
+    _, err := io.Copy(writer, tStdout)
+    if err != nil {
+      panic(err)
+    }
+  }()
 
-  return err
+  go func () {
+    wg.Add(1)
+    defer wg.Done()
+    _, err := io.Copy(writer, tStderr)
+    if err != nil {
+      panic(err)
+    }
+  }()
+
+  result := cmd.Run()
+  writer.Close()
+  wg.Wait()
+
+  return result
 }
 
 type JobList []Job
