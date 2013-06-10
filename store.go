@@ -62,6 +62,7 @@ func (s Store) Setup (jobID string, cmd string) {
   }
 
   SetFile(s.getPath(jobID, "cmd"), cmd)
+  TouchFile(s.getPath(jobID, "output"))
   s.SetState(jobID, NEW)
 }
 func (s Store) GetState(jobID string) JobState {
