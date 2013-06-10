@@ -6,7 +6,7 @@ import (
 
 func TestEncoding(t *testing.T) {
 	cmd := "wc -l /bin/date"
-	expected := "e2c569be17396eca2a2e3c11578123ed"
+	expected := "4841a561915ae3d73e4b4ffb6fcbe630"
 	encoded := CreateHash(cmd)
 
 	if encoded != expected {
