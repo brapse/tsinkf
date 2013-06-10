@@ -29,6 +29,14 @@ var STATELABELS = map[JobState] string {
   SUCCEEDED: "SUCCEEDED",
 }
 
+var JOBSTATEIDS = map[string] JobState {
+  STATELABELS[UNKNOWN]:   UNKNOWN,
+  STATELABELS[NEW]:       NEW,
+  STATELABELS[RUNNING]:   RUNNING,
+  STATELABELS[FAILED]:    FAILED,
+  STATELABELS[SUCCEEDED]: SUCCEEDED,
+}
+
 type Job struct {
   id string
   cmd string
@@ -40,8 +48,9 @@ func NewJob(cmd string, store Store, journal Journal) *Job {
   jobID := CreateHash(cmd)
   state := store.GetState(jobID)
   if state == UNKNOWN {
-    store.SetState(jobID, NEW)
+    store.Setup(jobID, cmd)
   }
+
   // TODO: Journal
 
   job := &Job{jobID, cmd, journal, store}
@@ -139,7 +148,8 @@ func NewJobList(stor *Store, jrnl *Journal) JobList {
   jobList := JobList{}
 
   for _, jobID := range store.GetJobIDs() {
-		job := NewJob(DecodeHash(jobID), *stor, *jrnl)
+    cmd := store.GetCmd(jobID)
+		job := NewJob(cmd, *stor, *jrnl)
 		if job.GetState() == RUNNING {
       job.SetState(FAILED)
 		}
@@ -152,7 +162,7 @@ func NewJobList(stor *Store, jrnl *Journal) JobList {
 
 func (jobList JobList) Include(job Job) bool {
 	for _, j := range jobList {
-		if job.id== j.id{
+		if job.id== j.id {
 			return true
 		}
 	}

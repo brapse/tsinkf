@@ -27,7 +27,7 @@ func FileExists(filepath string) bool {
 }
 
 func AppendToFile(filepath string, content string) {
-  f, err := os.OpenFile(filepath, os.O_RDWR|os.O_APPEND, 0755)
+  f, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0755)
   if err != nil {
     panic(err)
   }
@@ -79,4 +79,25 @@ func LastTouch(filepath string) time.Time{
   }
 
   return info.ModTime()
+}
+
+func DeleteFile(filepath string) {
+  err :=  os.Remove(filepath)
+
+  if err != nil {
+    panic(err)
+  }
+}
+
+func SetFile(filepath string, content string) {
+  f, err := os.OpenFile(filepath, os.O_CREATE| os.O_RDWR|os.O_TRUNC, 0755)
+
+  if err != nil {
+    panic(err)
+  }
+
+  _, err = f.WriteString(content)
+  if err != nil {
+    panic(err)
+  }
 }

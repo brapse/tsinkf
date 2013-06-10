@@ -60,12 +60,6 @@ $ tsinkf reset -v
 * Not used in production
 * Some features and sketches and not fully fleshed out
 
-## Notes
-Jobs are identified by base64 encoding the full command. The current
-persistance mechanism creates files named this jobID. In cases in
-which the encoded jobID is longer than 255 charecters, tsink will fail
-to create a file and crash.
-
 ## Todo
 * tsink reset -hard  #=> delete the contents
 * Redo the help and subcommand listing
