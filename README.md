@@ -1,4 +1,4 @@
-# tsinkf [![Build Status][5][6]]
+# tsinkf [![Build Status][5]][6]
 Stateful command execution
 
 ## Motivation
