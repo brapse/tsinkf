@@ -1,92 +1,92 @@
 package main
 
 import (
-  "testing"
-  "os/exec"
-  "strings"
-  "regexp"
+	"os/exec"
+	"regexp"
+	"strings"
+	"testing"
 )
 
 var CMD_SUCCESS = 0
 var CMD_FAILURE = 1
 
 func matches(needle string, heystack string) bool {
-  match, err := regexp.MatchString(needle, heystack)
-  if err != nil {
-    panic(err)
-  }
+	match, err := regexp.MatchString(needle, heystack)
+	if err != nil {
+		panic(err)
+	}
 
-  return match
+	return match
 }
 
-func resetState () {
-  cmd := exec.Command("rm", "-rf", ".tsinkf")
-  err := cmd.Run()
-  if err != nil {
-    panic(err)
-  }
+func resetState() {
+	cmd := exec.Command("rm", "-rf", ".tsinkf")
+	err := cmd.Run()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func tsinkfExec(args string) (string, int) {
-  cmdLine := []string{"go",
-                      "run",
-                      "utils.go",
-                      "jobs.go",
-                      "journal.go",
-                      "store.go",
-                      "hashing.go",
-                      "fs.go",
-                      "tsinkf.go",
-                      "subcommand.go"}
+	cmdLine := []string{"go",
+		"run",
+		"utils.go",
+		"jobs.go",
+		"journal.go",
+		"store.go",
+		"hashing.go",
+		"fs.go",
+		"tsinkf.go",
+		"subcommand.go"}
 
-  cmdLine = append(cmdLine, args)
+	cmdLine = append(cmdLine, args)
 
-  cmd := exec.Command("bash", "-c", strings.Join(cmdLine, " "))
+	cmd := exec.Command("bash", "-c", strings.Join(cmdLine, " "))
 
-  output, err := cmd.CombinedOutput()
-  if err != nil {
-    return string(output), CMD_FAILURE
-  }
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return string(output), CMD_FAILURE
+	}
 
-  return string(output), CMD_SUCCESS
+	return string(output), CMD_SUCCESS
 }
 
 func TestRun(t *testing.T) {
-  resetState()
+	resetState()
 
-  cmd := "run echo OKOKOK"
-  output, status := tsinkfExec(cmd)
+	cmd := "run echo OKOKOK"
+	output, status := tsinkfExec(cmd)
 
-  if status != CMD_SUCCESS {
-    t.Fatal("Failed to execute: ", cmd, "\n", output)
-  }
+	if status != CMD_SUCCESS {
+		t.Fatal("Failed to execute: ", cmd, "\n", output)
+	}
 
-  if ! matches("OKOKOK", output) {
-    t.Fatal("Running did not produce the expected output \"OKOKOK\"")
-  }
+	if !matches("OKOKOK", output) {
+		t.Fatal("Running did not produce the expected output \"OKOKOK\"")
+	}
 
-  output, status = tsinkfExec(cmd)
+	output, status = tsinkfExec(cmd)
 
-  if status != CMD_SUCCESS {
-    t.Fatal("Failed to execute a second time: ", cmd)
-  }
+	if status != CMD_SUCCESS {
+		t.Fatal("Failed to execute a second time: ", cmd)
+	}
 
-  if ! matches("^$", output) {
-    t.Fatal("Re-run should not re-exute but somehow produced output!\n", output)
-  }
+	if !matches("^$", output) {
+		t.Fatal("Re-run should not re-exute but somehow produced output!\n", output)
+	}
 
-  cmd = "show -v"
-  output, status = tsinkfExec(cmd)
+	cmd = "show -v"
+	output, status = tsinkfExec(cmd)
 
-  if status != CMD_SUCCESS {
-    t.Fatal("Failed to execute a show: ", cmd)
-  }
+	if status != CMD_SUCCESS {
+		t.Fatal("Failed to execute a show: ", cmd)
+	}
 
-  if ! matches("SUCCEEDED", output) {
-    t.Fatal("Show log successful statae!\n", output)
-  }
+	if !matches("SUCCEEDED", output) {
+		t.Fatal("Show log successful statae!\n", output)
+	}
 
-  if ! matches("OKOKOK\n", output) {
-    t.Fatal("Should include command output\n", output)
-  }
+	if !matches("OKOKOK\n", output) {
+		t.Fatal("Should include command output\n", output)
+	}
 }

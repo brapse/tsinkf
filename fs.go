@@ -1,50 +1,50 @@
 package main
 
 import (
-	"os"
 	"io/ioutil"
-  "time"
+	"os"
+	"time"
 )
 
-func TouchFile (filename string) {
-  _, err := os.OpenFile(filename, os.O_CREATE, 0666)
-  if err != nil {
-    panic(err)
-  }
+func TouchFile(filename string) {
+	_, err := os.OpenFile(filename, os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func FileExists(filepath string) bool {
-  _, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
-  if err != nil {
-    if os.IsNotExist(err) {
-      return false
-    } else {
-      panic(err)
-    }
-  }
+	_, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		} else {
+			panic(err)
+		}
+	}
 
-  return true
+	return true
 }
 
 func AppendToFile(filepath string, content string) {
-  f, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0755)
-  if err != nil {
-    panic(err)
-  }
+	f, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0755)
+	if err != nil {
+		panic(err)
+	}
 
-  _, err = f.WriteString(content)
-  if err != nil {
-    panic(err)
-  }
+	_, err = f.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func RemoveFile(filepath string) {
-  if FileExists(filepath) {
-    err := os.Remove(filepath)
-    if err != nil && os.IsNotExist(err) {
-      panic(err)
-    }
-  }
+	if FileExists(filepath) {
+		err := os.Remove(filepath)
+		if err != nil && os.IsNotExist(err) {
+			panic(err)
+		}
+	}
 }
 
 func ListFiles(basePath string) (res []string) {
@@ -61,43 +61,43 @@ func ListFiles(basePath string) (res []string) {
 }
 
 func ReadFile(filepath string) string {
-  content, err := ioutil.ReadFile(filepath)
+	content, err := ioutil.ReadFile(filepath)
 
-  if err != nil {
-    panic(err)
-  }
+	if err != nil {
+		panic(err)
+	}
 
-  return string(content)
+	return string(content)
 }
 
-func LastTouch(filepath string) time.Time{
-  info, err := os.Stat(filepath)
+func LastTouch(filepath string) time.Time {
+	info, err := os.Stat(filepath)
 
-  if err != nil {
-    panic(err)
+	if err != nil {
+		panic(err)
 
-  }
+	}
 
-  return info.ModTime()
+	return info.ModTime()
 }
 
 func DeleteFile(filepath string) {
-  err :=  os.Remove(filepath)
+	err := os.Remove(filepath)
 
-  if err != nil {
-    panic(err)
-  }
+	if err != nil {
+		panic(err)
+	}
 }
 
 func SetFile(filepath string, content string) {
-  f, err := os.OpenFile(filepath, os.O_CREATE| os.O_RDWR|os.O_TRUNC, 0755)
+	f, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0755)
 
-  if err != nil {
-    panic(err)
-  }
+	if err != nil {
+		panic(err)
+	}
 
-  _, err = f.WriteString(content)
-  if err != nil {
-    panic(err)
-  }
+	_, err = f.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
 }
