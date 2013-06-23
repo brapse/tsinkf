@@ -29,15 +29,18 @@ func resetState() {
 
 func tsinkfExec(args string) (string, int) {
 	cmdLine := []string{"go",
-		"run",
-		"utils.go",
-		"jobs.go",
-		"journal.go",
-		"store.go",
-		"hashing.go",
-		"fs.go",
-		"tsinkf.go",
-		"subcommand.go"}
+                      "run",
+                      "utils.go",
+                      "jobs.go",
+                      "journal.go",
+                      "store.go",
+                      "hashing.go",
+                      "fs.go",
+                      "tsinkf.go",
+                      "cmd.go",
+                      "run.go",
+                      "show.go",
+                      "reset.go"}
 
 	cmdLine = append(cmdLine, args)
 
