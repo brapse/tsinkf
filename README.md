@@ -1,4 +1,4 @@
-# tsinkf
+# tsinkf [![Build Status][5][6]]
 Stateful command execution
 
 ## Motivation
@@ -15,6 +15,8 @@ $ go get github.com/brapse/tsinkf
 [1]: http://golang.org
 [2]: http://golang.org/doc/install/source
 [3]: http://golang.org/doc/install
+[5]: https://secure.travis-ci.org/brapse/tsinkf.png
+[6]: https://travis-ci.org/brapse/tsinkf
 
 ## Usage
 Execute `tsinkf run` followed by a command.
