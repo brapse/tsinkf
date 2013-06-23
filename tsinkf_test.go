@@ -46,9 +46,9 @@ func tsinkfExec(args string) (string, int) {
   output, err := cmd.CombinedOutput()
   if err != nil {
     return string(output), CMD_FAILURE
-  } else {
-    return string(output), CMD_SUCCESS
   }
+
+  return string(output), CMD_SUCCESS
 }
 
 func TestRun(t *testing.T) {
