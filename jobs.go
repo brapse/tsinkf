@@ -130,6 +130,11 @@ func (job *Job) Run() error {
   }()
 
   result := cmd.Run()
+  /* XXX
+  There could be a race condition here,
+  as there is no guarentee that the child processes are done
+  done writing to the pipe
+  */
   writer.Close()
   wg.Wait()
 
