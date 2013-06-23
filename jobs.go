@@ -47,13 +47,13 @@ type Job struct {
 func NewJob(cmd string, store Store, journal Journal) *Job {
   jobID := CreateHash(cmd)
   state := store.GetState(jobID)
+  job := &Job{jobID, cmd, journal, store}
+
   if state == UNKNOWN {
     store.Setup(jobID, cmd)
+    journal.Log(*job, state)
   }
 
-  // TODO: Journal
-
-  job := &Job{jobID, cmd, journal, store}
   return job
 }
 
@@ -169,7 +169,6 @@ func (jobList JobList) Include(job Job) bool {
 	return false
 }
 
-// TODO: store state in Job and not JobList
 func (jobList *JobList) Add(job Job) {
     foo := append(*jobList, job)
     *jobList = foo

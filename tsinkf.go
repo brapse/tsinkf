@@ -3,29 +3,13 @@ package main
 import (
   "flag"
   "strings"
-  "io/ioutil"
   "fmt"
-  "os"
 )
 
 var baseDir = flag.String("dir", ".tsinkf", "directory where state files are created")
 
 func init() {
   flag.Parse()
-}
-
-func getFrom() (res []string) {
-  out, err := ioutil.ReadAll(os.Stdin)
-  if err != nil {
-    panic(err)
-  }
-
-  for _, line := range strings.Split(string(out), "\n") {
-    if len(line) > 0 {
-      res = append(res, line)
-    }
-  }
-  return
 }
 
 // Run
@@ -106,8 +90,6 @@ func (fs *Show) Run(jobIDs []string) {
     }
   }
 }
-
-// Reset
 
 type Reset struct {
   baseDir *string
