@@ -3,20 +3,10 @@ MINOR    := 0
 PATCH    := 1
 VERSION  := $(MAJOR).$(MINOR).$(PATCH)
 
-LDFLAGS := -ldflags "-X main.Version $(VERSION)"
-
-SRC=$(wildcard *.go)
-TGT=tsinkf
-
-default: example
+default: test
 
 build:
 	go build
 
-test: build
+test:
 	go test
-
-example: build
-	./tsinkf reset
-	./tsinkf run wc -l /usr/share/dict/words
-	./tsinkf show -v
