@@ -93,3 +93,14 @@ func TestRun(t *testing.T) {
 		t.Fatal("Should include command output\n", output)
 	}
 }
+
+func TestLocking(t *testing.T) {
+	resetState()
+
+	go tsinkfExec("run sleep 11")
+	_, status := tsinkfExec("run echo lol")
+
+	if status != CMD_FAILURE {
+		t.Fatal("Should not be able to run a task when a current task is pending!")
+	}
+}
