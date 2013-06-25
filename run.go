@@ -1,21 +1,21 @@
 package main
 
 import (
-  "strings"
+	"strings"
 )
 
-var runFn CmdFn  = func(c * Cmd, args []string) int {
-  baseDir := c.Flags.String("d", ".tsinkf", "base directory")
-  verbose := c.Flags.Bool("v", false, "verbose output")
+var runFn CmdFn = func(c *Cmd, args []string) int {
+	baseDir := c.Flags.String("d", ".tsinkf", "base directory")
+	verbose := c.Flags.Bool("v", false, "verbose output")
 
-  c.Flags.Parse(args)
+	c.Flags.Parse(args)
 
-  if len(args) == 0 {
-    c.Usage()
-    return 1
-  }
+	if len(args) == 0 {
+		c.Usage()
+		return 1
+	}
 
-  leftover := c.Flags.Args()
+	leftover := c.Flags.Args()
 
 	store := NewStore(*baseDir)
 	journal := NewJournal(*verbose, *baseDir+"/journal.log")
@@ -40,11 +40,10 @@ var runFn CmdFn  = func(c * Cmd, args []string) int {
 			job.SetState(FAILED)
 		}
 	}
-  return 0
+	return 0
 }
 
-
 func init() {
-  cmd := NewCmd("run", "run a command", "tsinkf run [-v] cmd...", runFn)
-  cmdList[cmd.Name] = cmd
+	cmd := NewCmd("run", "run a command", "tsinkf run [-v] cmd...", runFn)
+	cmdList[cmd.Name] = cmd
 }

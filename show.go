@@ -1,13 +1,13 @@
 package main
 
 import (
-  "fmt"
+	"fmt"
 )
 
-var showFn CmdFn  = func(c * Cmd, args []string) int {
-  verbose := c.Flags.Bool("v", false, "verbose output")
+var showFn CmdFn = func(c *Cmd, args []string) int {
+	verbose := c.Flags.Bool("v", false, "verbose output")
 
-  c.Flags.Parse(args)
+	c.Flags.Parse(args)
 
 	store := NewStore(*root)
 	journal := NewJournal(*verbose, *root+"/journal.log")
@@ -17,13 +17,13 @@ var showFn CmdFn  = func(c * Cmd, args []string) int {
 
 	jobList := NewJobList(store, journal)
 
-  jobIDs := c.Flags.Args()
+	jobIDs := c.Flags.Args()
 
 	printable := JobSpecific(jobIDs)
 
 	for _, job := range jobList {
 		if printable(job) {
-			if ! *verbose {
+			if !*verbose {
 				fmt.Println(job.ToString())
 			} else {
 				fmt.Println(job.ToString() + "\n" + job.GetOutput())
@@ -31,10 +31,10 @@ var showFn CmdFn  = func(c * Cmd, args []string) int {
 		}
 	}
 
-  return 0
+	return 0
 }
 
 func init() {
-  cmd := NewCmd("show", "show the status of commands", "tsinkf show[-v] [taskID]", showFn)
-  cmdList[cmd.Name] = cmd
+	cmd := NewCmd("show", "show the status of commands", "tsinkf show[-v] [taskID]", showFn)
+	cmdList[cmd.Name] = cmd
 }
