@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 var CMD_SUCCESS = 0
@@ -54,6 +55,21 @@ func tsinkfExec(args string) (string, int) {
 	return string(output), CMD_SUCCESS
 }
 
+type execResult struct {
+	output string
+	status int
+}
+
+func asyncTsinkfExec(args string) chan execResult {
+	result := make(chan execResult)
+	go func() {
+		output, status := tsinkfExec(args)
+		result <- execResult{output, status}
+	}()
+
+	return result
+}
+
 func TestRun(t *testing.T) {
 	resetState()
 
@@ -64,8 +80,8 @@ func TestRun(t *testing.T) {
 		t.Fatal("Failed to execute: ", cmd, "\n", output)
 	}
 
-	if !matches("OKOKOK", output) {
-		t.Fatal("Running did not produce the expected output \"OKOKOK\"")
+	if !matches(`^OKOKOK`, output) {
+		t.Fatal("Running did not produce the expected output \"OKOKOK\"\n", output)
 	}
 
 	output, status = tsinkfExec(cmd)
@@ -97,10 +113,12 @@ func TestRun(t *testing.T) {
 func TestLocking(t *testing.T) {
 	resetState()
 
-	go tsinkfExec("run sleep 11")
+	sleepChan := asyncTsinkfExec("run sleep 2")
+	time.Sleep(1 * time.Second)
 	_, status := tsinkfExec("run echo lol")
 
 	if status != CMD_FAILURE {
-		t.Fatal("Should not be able to run a task when a current task is pending!")
+		sleep := <-sleepChan
+		t.Fatal("Should not be able to run a task when a current task is pending!\n", sleep.output)
 	}
 }

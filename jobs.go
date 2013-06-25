@@ -98,20 +98,18 @@ func (job *Job) Run() error {
 	reader, writer := io.Pipe()
 
 	var wg sync.WaitGroup
-
+	doneOutput := make(chan bool)
 	go func() {
-		wg.Add(1)
-		defer wg.Done()
-
 		buf, err := ioutil.ReadAll(reader)
 		if err != nil {
 			panic(err)
 		}
 		job.store.SetOutput(job.id, string(buf))
+		doneOutput <- true
 	}()
 
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		_, err := io.Copy(writer, tStdout)
 		if err != nil {
@@ -119,8 +117,8 @@ func (job *Job) Run() error {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		_, err := io.Copy(writer, tStderr)
 		if err != nil {
@@ -128,14 +126,11 @@ func (job *Job) Run() error {
 		}
 	}()
 
-	result := cmd.Run()
-	/* XXX
-	There could be a race condition here,
-	as there is no guarentee that the child processes are done
-	done writing to the pipe
-	*/
-	writer.Close()
+	cmd.Start() // start executing the command
 	wg.Wait()
+	result := cmd.Wait()
+	writer.Close()
+	<-doneOutput
 
 	return result
 }
