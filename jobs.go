@@ -81,7 +81,7 @@ func (job *Job) ToString() string {
 		job.id}, "\t")
 }
 
-func (job *Job) Run() error {
+func (job *Job) Run() int {
 	cmd := exec.Command("bash", "-c", job.cmd)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -128,11 +128,14 @@ func (job *Job) Run() error {
 
 	cmd.Start() // start executing the command
 	wg.Wait()
-	result := cmd.Wait()
+	res := cmd.Wait()
 	writer.Close()
 	<-doneOutput
 
-	return result
+	if res != nil {
+		return 1
+	}
+	return 0
 }
 
 type JobList []Job

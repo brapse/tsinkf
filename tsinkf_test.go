@@ -122,3 +122,11 @@ func TestLocking(t *testing.T) {
 		t.Fatal("Should not be able to run a task when a current task is pending!\n", sleep.output)
 	}
 }
+
+func TestReturnCode(t *testing.T) {
+	resetState()
+	_, status := tsinkfExec("run ruby -e rawrwa")
+	if status != CMD_FAILURE {
+		t.Fatal("Should return non zero exit code when ran command fails")
+	}
+}

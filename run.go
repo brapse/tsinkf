@@ -35,12 +35,14 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 
 	if job.GetState() == NEW {
 		job.SetState(RUNNING)
-		err := job.Run()
-		if err == nil {
+		status := job.Run()
+		if status == 0 {
 			job.SetState(SUCCEEDED)
 		} else {
 			job.SetState(FAILED)
 		}
+
+		return status
 	}
 	return 0
 }
