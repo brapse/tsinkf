@@ -130,3 +130,29 @@ func TestReturnCode(t *testing.T) {
 		t.Fatal("Should return non zero exit code when ran command fails")
 	}
 }
+
+func TestReset(t *testing.T) {
+	resetState()
+
+	testCmd := "run echo lol"
+	output, status := tsinkfExec(testCmd)
+
+	if !matches("lol", output) {
+		t.Fatal("Failed to execute the first time")
+	}
+
+	output, status = tsinkfExec(testCmd)
+	if !matches("^$", output) {
+		t.Fatal("Should produce no output:" + output)
+	}
+
+	output, status = tsinkfExec("reset")
+	if status != CMD_SUCCESS {
+		t.Fatal("reset cmd failed\n" + output)
+	}
+
+	output, status = tsinkfExec(testCmd)
+	if !matches("lol", output) {
+		t.Fatal("Failed to execute again after reset")
+	}
+}
