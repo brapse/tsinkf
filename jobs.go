@@ -98,7 +98,7 @@ func (job *Job) Run() int {
 	reader, writer := io.Pipe()
 
 	var wg sync.WaitGroup
-	doneOutput := make(chan bool)
+	doneOutput := make(chan bool,1)
 	go func() {
 		buf, err := ioutil.ReadAll(reader)
 		if err != nil {
