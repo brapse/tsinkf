@@ -17,7 +17,7 @@ func contains(needle string, heystack []string) int {
 var resetFn CmdFn = func(c *Cmd, args []string) int {
 	verbose := c.Flags.Bool("v", false, "verbose output")
 	state := c.Flags.String("state", STATELABELS[NEW], "state to set")
-	all := c.Flags.Bool("all", false, "operate on all jobs")
+	force := c.Flags.Bool("force", false, "operate on all jobs")
 
 	c.Flags.Parse(args)
 
@@ -36,28 +36,23 @@ var resetFn CmdFn = func(c *Cmd, args []string) int {
 
 	jobList := NewJobList(store, journal)
 
-	if *all {
-
-		for _, job := range jobList {
-			fmt.Println(job.ToString())
-		}
-
-		fmt.Printf("Resetting all jobs to %s, type \"yes\" to confirm: ", STATELABELS[NEWSTATE])
-		var input string
-		_, err := fmt.Scanf("%s", &input)
-		if err != nil {
-			panic(err)
-		}
-
-		if input != "yes" {
-			fmt.Println("ABORT")
-			return 1
-		}
-	}
-
 	for _, job := range jobList {
-		if *all || contains(job.id, jobIDs) > -1 {
-			job.SetState(NEWSTATE)
+		if len(jobIDs) == 0 || contains(job.id, jobIDs) > -1 {
+			if !*force {
+				fmt.Println(job.ToString())
+				fmt.Printf("Reset to %s, \"yes\" to confirm: ", STATELABELS[NEWSTATE])
+				var input string
+				_, err := fmt.Scanf("%s", &input)
+				if err != nil {
+					panic(err)
+				}
+
+				if input == "yes" {
+					job.SetState(NEWSTATE)
+				}
+			} else {
+				job.SetState(NEWSTATE)
+			}
 		}
 	}
 
