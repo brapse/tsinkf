@@ -14,7 +14,6 @@ var (
 	root     = flag.String("root", ".tsinkf", "directory where state files are created")
 )
 
-
 var cmdList = map[string]*Cmd{}
 
 var usageTmpl = `usage: tsinkf [globals] command [arguments]

@@ -1,12 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
-  "bytes"
 )
 
 type JobState int
@@ -81,22 +81,22 @@ func (job *Job) ToString() string {
 }
 
 func (job *Job) Run() int {
-  buf := bytes.Buffer{}
-  defer func() { job.store.SetOutput(job.id, buf.String()) }()
+	buf := bytes.Buffer{}
+	defer func() { job.store.SetOutput(job.id, buf.String()) }()
 
-  cmd := exec.Command("bash", "-c", job.cmd)
-  cmd.Stdout = io.MultiWriter(os.Stdout, &buf)
-  cmd.Stderr = io.MultiWriter(os.Stderr, &buf)
+	cmd := exec.Command("bash", "-c", job.cmd)
+	cmd.Stdout = io.MultiWriter(os.Stdout, &buf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &buf)
 
-  if err := cmd.Start(); err != nil {
-    return 2
-  }
+	if err := cmd.Start(); err != nil {
+		return 2
+	}
 
-  if err := cmd.Wait(); err != nil {
-    return 3
-  }
+	if err := cmd.Wait(); err != nil {
+		return 3
+	}
 
-  return 0
+	return 0
 }
 
 type JobList []Job

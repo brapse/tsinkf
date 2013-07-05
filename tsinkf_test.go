@@ -146,13 +146,13 @@ func TestReset(t *testing.T) {
 		t.Fatal("Should produce no output:" + output)
 	}
 
-	output, status = tsinkfExec("reset")
+	output, status = tsinkfExec("reset -force")
 	if status != CMD_SUCCESS {
 		t.Fatal("reset cmd failed\n" + output)
 	}
 
 	output, status = tsinkfExec(testCmd)
 	if !matches("lol", output) {
-		t.Fatal("Failed to execute again after reset")
+		t.Fatal("Failed to execute again after reset\n", output)
 	}
 }
