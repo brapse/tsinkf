@@ -2,12 +2,11 @@ package main
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
-	"sync"
 	"time"
+  "bytes"
 )
 
 type JobState int
@@ -82,60 +81,22 @@ func (job *Job) ToString() string {
 }
 
 func (job *Job) Run() int {
-	cmd := exec.Command("bash", "-c", job.cmd)
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		panic(err)
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		panic(err)
-	}
+  buf := bytes.Buffer{}
+  defer func() { job.store.SetOutput(job.id, buf.String()) }()
 
-	tStdout := io.TeeReader(stdout, os.Stdout)
-	tStderr := io.TeeReader(stderr, os.Stderr)
+  cmd := exec.Command("bash", "-c", job.cmd)
+  cmd.Stdout = io.MultiWriter(os.Stdout, &buf)
+  cmd.Stderr = io.MultiWriter(os.Stderr, &buf)
 
-	reader, writer := io.Pipe()
+  if err := cmd.Start(); err != nil {
+    return 2
+  }
 
-	var wg sync.WaitGroup
-	doneOutput := make(chan bool,1)
-	go func() {
-		buf, err := ioutil.ReadAll(reader)
-		if err != nil {
-			panic(err)
-		}
-		job.store.SetOutput(job.id, string(buf))
-		doneOutput <- true
-	}()
+  if err := cmd.Wait(); err != nil {
+    return 3
+  }
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		_, err := io.Copy(writer, tStdout)
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		_, err := io.Copy(writer, tStderr)
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	cmd.Start() // start executing the command
-	wg.Wait()
-	res := cmd.Wait()
-	writer.Close()
-	<-doneOutput
-
-	if res != nil {
-		return 1
-	}
-	return 0
+  return 0
 }
 
 type JobList []Job
