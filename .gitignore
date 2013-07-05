@@ -1,3 +1,4 @@
 tsinkf
 .tsinkf/*
 local.mk
+dist/*
