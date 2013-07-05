@@ -7,10 +7,13 @@ import (
 	"text/template"
 )
 
+var Version string
+
 var (
 	showHelp = flag.Bool("h", false, "show this help")
 	root     = flag.String("root", ".tsinkf", "directory where state files are created")
 )
+
 
 var cmdList = map[string]*Cmd{}
 
