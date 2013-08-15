@@ -24,16 +24,10 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 	defer store.Close()
 	defer journal.Close()
 
-	jobList := NewJobList(store, journal)
-
 	cmd := strings.Join(leftover, " ")
 	job := NewJob(cmd, *store, *journal)
-	if !jobList.Include(*job) {
-		job.SetState(NEW)
-		jobList.Add(*job)
-	}
 
-	if job.GetState() == NEW {
+  runJob := func () int {
 		job.SetState(RUNNING)
 		status := job.Run()
 		if status == 0 {
@@ -42,9 +36,25 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 			job.SetState(FAILED)
 		}
 
-		return status
-	}
-	return 0
+    return status
+  }
+
+  switch job.GetState() {
+    case UNKNOWN:
+      job.SetState(NEW)
+      return runJob()
+    case NEW:
+      return runJob()
+    case RUNNING:
+      job.SetState(FAILED)
+      return 1
+    case FAILED:
+      return 1
+    case SUCCEEDED:
+      return 0
+    default:
+      return 1
+  }
 }
 
 func init() {
