@@ -7,20 +7,30 @@ import (
 )
 
 func TouchFile(filename string) {
-	_, err := os.OpenFile(filename, os.O_CREATE, 0666)
+	f, err := os.OpenFile(filename, os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+
+	err = f.Close()
 	if err != nil {
 		panic(err)
 	}
 }
 
 func FileExists(filepath string) bool {
-	_, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
+	f, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false
 		} else {
 			panic(err)
 		}
+	}
+
+	err = f.Close()
+	if err != nil {
+		panic(err)
 	}
 
 	return true
@@ -33,6 +43,11 @@ func AppendToFile(filepath string, content string) {
 	}
 
 	_, err = f.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
+
+	err = f.Close()
 	if err != nil {
 		panic(err)
 	}
@@ -97,6 +112,11 @@ func SetFile(filepath string, content string) {
 	}
 
 	_, err = f.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
+
+	err = f.Close()
 	if err != nil {
 		panic(err)
 	}
