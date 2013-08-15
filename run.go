@@ -52,9 +52,9 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 		return 1
 	case SUCCEEDED:
 		return 0
-	default:
-		return 1
 	}
+	return 1
+
 }
 
 func init() {
