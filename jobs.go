@@ -48,8 +48,7 @@ func NewJob(cmd string, store Store, journal Journal) *Job {
 	job := &Job{jobID, cmd, journal, store}
 
 	if state == UNKNOWN {
-		store.Setup(jobID, cmd)
-		journal.Log(*job, state)
+		store.Setup(jobID, cmd, UNKNOWN)
 	}
 
 	return job

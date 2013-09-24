@@ -54,7 +54,7 @@ func (s Store) getPath(jobID string, field string) string {
 	return s.baseDir + "/jobs/" + jobID + "/" + field
 }
 
-func (s Store) Setup(jobID string, cmd string) {
+func (s Store) Setup(jobID string, cmd string, state JobState) {
 	jobsDir := s.baseDir + "/jobs/" + jobID
 	err := os.MkdirAll(jobsDir, 0755)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s Store) Setup(jobID string, cmd string) {
 
 	SetFile(s.getPath(jobID, "cmd"), cmd)
 	TouchFile(s.getPath(jobID, "output"))
-	s.SetState(jobID, NEW)
+	s.SetState(jobID, state)
 }
 func (s Store) GetState(jobID string) JobState {
 	stateFile := s.getPath(jobID, "state")
