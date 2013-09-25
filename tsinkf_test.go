@@ -129,6 +129,12 @@ func TestReturnCode(t *testing.T) {
 	if status != CMD_FAILURE {
 		t.Fatal("Should return non zero exit code when ran command fails")
 	}
+
+	resetState()
+	_, status = tsinkfExec(`run ruby -e "exit 0"`)
+	if status != CMD_SUCCESS {
+		t.Fatal("Should return zero exit code when ran command succeeds$")
+	}
 }
 
 func TestReset(t *testing.T) {
