@@ -54,7 +54,6 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 		return 0
 	}
 	return 1
-
 }
 
 func init() {

@@ -88,11 +88,11 @@ func (job *Job) Run() int {
 	cmd.Stderr = io.MultiWriter(os.Stderr, &buf)
 
 	if err := cmd.Start(); err != nil {
-    panic(err)
+		panic(err)
 	}
 
 	if err := cmd.Wait(); err != nil {
-    return 1
+		return 1
 	}
 
 	return 0
