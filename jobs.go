@@ -92,7 +92,7 @@ func (job *Job) Run() int {
 	}
 
 	if err := cmd.Wait(); err != nil {
-    panic(err)
+    return 1
 	}
 
 	return 0
