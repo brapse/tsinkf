@@ -49,7 +49,7 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 		job.SetState(FAILED)
 		return 1
 	case FAILED:
-		return 1
+		return 0
 	case SUCCEEDED:
 		return 0
 	}
