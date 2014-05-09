@@ -20,7 +20,6 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 	store := NewStore(*baseDir)
 	journal := NewJournal(*verbose, *baseDir+"/journal.log")
 
-	store.Lock()
 	defer store.Close()
 	defer journal.Close()
 
