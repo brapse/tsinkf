@@ -7,8 +7,9 @@ import (
 var runFn CmdFn = func(c *Cmd, args []string) int {
 	baseDir := c.Flags.String("d", ".tsinkf", "base directory")
 	verbose := c.Flags.Bool("v", false, "verbose output")
+  locking := c.Flags.Bool("l" ,true, "enable locking")
 
-	c.Flags.Parse(args)
+  c.Flags.Parse(args)
 
 	if len(args) == 0 {
 		c.Usage()
@@ -20,6 +21,9 @@ var runFn CmdFn = func(c *Cmd, args []string) int {
 	store := NewStore(*baseDir)
 	journal := NewJournal(*verbose, *baseDir+"/journal.log")
 
+  if *locking {
+    store.Lock()
+  }
 	defer store.Close()
 	defer journal.Close()
 

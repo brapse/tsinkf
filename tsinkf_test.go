@@ -123,6 +123,19 @@ func TestLocking(t *testing.T) {
 	}
 }
 
+func TestUnLocking(t *testing.T) {
+	resetState()
+
+	sleepChan := asyncTsinkfExec("run sleep 2")
+	time.Sleep(1 * time.Second)
+	_, status := tsinkfExec("run -l=false echo lol")
+
+	if status != CMD_SUCCESS {
+		sleep := <-sleepChan
+		t.Fatal("Should be able to run a task when a current task is pending\n", sleep.output)
+	}
+}
+
 func TestReturnCode(t *testing.T) {
 	resetState()
 	_, status := tsinkfExec("run ruby -e rawrwa")
