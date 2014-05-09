@@ -1,6 +1,6 @@
 MAJOR    := 0
-MINOR    := 1
-PATCH    := 10
+MINOR    := 2
+PATCH    := 0
 VERSION  := $(MAJOR).$(MINOR).$(PATCH)
 LDFLAGS := -ldflags "-X main.Version $(VERSION)"
 TARGET := tsinkf
